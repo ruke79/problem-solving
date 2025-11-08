@@ -15,9 +15,18 @@ spring:
         spring.json.type.default.SmsMessage: com.project.sms.entity.SmsMessage
 
 kakao:
+  client-id: YOUR_REST_API_KEY
+  # 필수 아님
+  client-secret: YOUR_CLIENT_SECRET
+  redirect-uri: "http://localhost:8080/kakao/callback"
+
   biz-message:
     host: https://kapi.kakao.com
     access-token-url: https://kauth.kakao.com/oauth/token
     app-key: YOUR_APP_KEY
+
     client-secret: YOUR_CLIENT_SECRET
+
     template-code: YOUR_ALIMTALK_TEMPLATE_CODE # ⭐ 사전에 등록한 템플릿 코드
+
+

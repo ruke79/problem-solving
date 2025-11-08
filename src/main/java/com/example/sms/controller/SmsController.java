@@ -1,4 +1,4 @@
-package com.example.sms;
+package com.example.sms.controller;
 
 import com.example.sms.dto.SmsMessageDto;
 import com.example.sms.model.SmsMessage;
