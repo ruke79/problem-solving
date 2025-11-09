@@ -1,9 +1,7 @@
-package com.example.sms.factory;
+package com.example.sms.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import com.example.sms.service.ExternalMessageService;
 
 import java.util.List;
 import java.util.Map;

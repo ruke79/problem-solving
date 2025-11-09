@@ -9,6 +9,7 @@ import com.example.sms.dto.KakaoMessageRequest;
 import com.example.sms.dto.MessageRequest;
 import com.example.sms.dto.MessageResponse;
 
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 

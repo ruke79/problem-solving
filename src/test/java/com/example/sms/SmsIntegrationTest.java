@@ -8,9 +8,9 @@ import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.annotation.DirtiesContext;
 
 import com.example.sms.dto.MessageRequest;
-import com.example.sms.factory.MessageServiceFactory;
 import com.example.sms.repository.SmsMessageRepository;
 import com.example.sms.service.ExternalMessageService;
+import com.example.sms.service.MessageServiceFactory;
 import com.example.sms.service.SmsGateway;
 
 import java.util.concurrent.TimeUnit;
