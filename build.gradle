@@ -5,7 +5,7 @@ plugins {
     id 'org.jetbrains.kotlin.jvm'
 }
 
-group = 'com.example'
+group = 'com.project'
 version = '0.0.1-SNAPSHOT'
 description = 'KaKao Sms  Demo project for Spring Boot'
 
