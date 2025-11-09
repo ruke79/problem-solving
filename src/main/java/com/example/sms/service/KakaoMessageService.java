@@ -6,6 +6,8 @@ import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.example.sms.dto.KakaoMessageRequest;
+import com.example.sms.dto.MessageRequest;
+import com.example.sms.dto.MessageResponse;
 
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
@@ -20,7 +22,7 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
-public class KakaoMessageService {
+public class KakaoMessageService implements ExternalMessageService {
 
     private final WebClient webClient;
 
@@ -69,5 +71,29 @@ public class KakaoMessageService {
                     .retrieve()
                     .bodyToMono(Void.class);
         });
+    }
+
+    @Override
+    public MessageResponse sendMessage(MessageRequest request) {
+        
+        // 실제 카카오 API 호출 로직이 여기에 들어갑니다.
+        System.out.println("카카오 메시지를 외부 API를 통해 전송합니다: " + request.getContent());
+
+        sendAlimtalk(request.getRecipient(), request.getContent())
+            .subscribe(); // 비동기 호출
+        
+        // 전송 결과 반환
+        return new MessageResponse(true, "Kakao 메시지 전송 완료 by MessageService");
+    }
+
+    @Override
+    public String getServiceType() {
+        return "KAKAO";
+    }
+
+    @Override
+    public boolean validateTemplate(String templateCode) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'validateTemplate'");
     }
 }
