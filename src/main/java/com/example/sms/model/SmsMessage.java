@@ -76,5 +76,7 @@ public class SmsMessage {
     public String getContent() { return content; }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
-    public void setSentAt(LocalDateTime sentAt) { this.sentAt = sentAt; }
+    public void setSentAt(LocalDateTime sentAt) { this.sentAt = sentAt; }    
+    public LocalDateTime getSentAt() { return sentAt; }
+    public LocalDateTime getRequestedAt() { return requestedAt; }
 }

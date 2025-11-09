@@ -1,7 +1,7 @@
 spring:
   application:
       name: Sms
-
+  
   kafka:
     bootstrap-servers: localhost:9092
     producer:
@@ -13,6 +13,16 @@ spring:
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
         spring.json.type.default.SmsMessage: com.project.sms.entity.SmsMessage
+
+      listener:
+        # 비어 있는 경우, 모든 예외는 DLQ 처리기로 전달됩니다.
+        ack-mode: record 
+        # 재시도 횟수 설정 (예: 최대 3번 재시도)
+        retry:
+          max-attempts: 3
+          back-off:
+            interval: 5000 # 5초 간격으로 재시도 (필요에 따라 설정)
+
 
 kakao:
   client-id: YOUR_REST_API_KEY

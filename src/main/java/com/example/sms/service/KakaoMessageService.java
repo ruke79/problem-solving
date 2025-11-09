@@ -22,7 +22,7 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
-public class KakaoMessageService implements ExternalMessageService {
+public class KakaoMessageService implements ExternalMessageService, KakaoTemplateValidator {
 
     private final WebClient webClient;
 
@@ -93,7 +93,12 @@ public class KakaoMessageService implements ExternalMessageService {
 
     @Override
     public boolean validateTemplate(String templateCode) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'validateTemplate'");
+        // Kakao 알림톡의 템플릿 검증 로직 구현
+        if (templateCode != null && templateCode.startsWith("T_VALID_")) {
+            System.out.println("[KAKAO Validation] 템플릿 코드 '" + templateCode + "' 유효함.");
+            return true;
+        }
+        System.err.println("[KAKAO Validation] 템플릿 코드 유효하지 않음.");
+        return false;
     }
 }

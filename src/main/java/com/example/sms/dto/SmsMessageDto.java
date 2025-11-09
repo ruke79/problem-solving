@@ -30,15 +30,19 @@ public class SmsMessageDto implements Serializable {
 
     private String recipient; // 수신자 전화번호
     private String content;   // 메시지 내용
+    private String type;     // 추가: SMS, LMS, MMS 구분
+    private String subject;  // 추가: LMS, MMS용 제목
 
     // 기본 생성자
     public SmsMessageDto() {
     }
 
     // 생성자
-    public SmsMessageDto(String recipient, String content) {
+    public SmsMessageDto(String recipient, String content, String type, String subject) {
         this.recipient = recipient;
         this.content = content;
+        this.type = type;
+        this.subject = subject;
     }
 
     // Getters
@@ -57,5 +61,18 @@ public class SmsMessageDto implements Serializable {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public String getType() {
+        return type;
+    }           
+    public void setType(String type) {
+        this.type = type;
+    }
+    public String getSubject() {
+        return subject;
+    }
+    public void setSubject(String subject) {
+        this.subject = subject;
     }
 }

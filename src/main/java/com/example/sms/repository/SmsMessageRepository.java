@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface SmsMessageRepository extends JpaRepository<SmsMessage, Long> {
@@ -14,4 +15,9 @@ public interface SmsMessageRepository extends JpaRepository<SmsMessage, Long> {
     
     // 예시: 특정 상태의 메시지 목록을 찾는 쿼리 메서드
     // List<SmsMessage> findByStatus(String status);
+
+    /**
+     * 외부 SMS 게이트웨이의 거래 ID를 기준으로 메시지 이력을 조회합니다.
+     */
+    Optional<SmsMessage> findByTransactionId(String transactionId);
 }
