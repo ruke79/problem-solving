@@ -1,57 +1,43 @@
 plugins {
-	id 'java'
-	id 'org.springframework.boot' version '3.4.10'
-	id 'io.spring.dependency-management' version '1.1.7'
-    id 'org.jetbrains.kotlin.jvm'
+    id 'java'
+    id 'org.springframework.boot' version '3.3.5' apply false
+    id 'io.spring.dependency-management' version '1.1.6' apply false
 }
 
-group = 'com.project'
-version = '0.0.1-SNAPSHOT'
-description = 'KaKao Sms  Demo project for Spring Boot'
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'io.spring.dependency-management'
 
-java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(17)
-	}
-}
+    group = 'io.webboy'
+    version = '0.1.0'
 
-configurations {
-	compileOnly {
-		extendsFrom annotationProcessor
-	}
-}
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(17)
+        }
+    }
 
-repositories {
-	mavenCentral()
-}
+    repositories {
+        mavenCentral()
+    }
 
-dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
-	implementation 'org.springframework.boot:spring-boot-starter-security'
-	implementation 'org.springframework.boot:spring-boot-starter-validation'
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation 'org.springframework.boot:spring-boot-starter-webflux'
-	implementation 'org.springframework.kafka:spring-kafka'
+    dependencyManagement {
+        imports {
+            mavenBom org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES
+        }
+    }
 
-    // 카카오 API 연동을 위한 WebClient 사용 (필수 추가)
-    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    dependencies {
+        // Gradle 8.14 는 테스트 프레임워크 구현체를 암묵적으로 얹어 주는 동작을 폐기 예정으로 경고한다.
+        // (Gradle 9.0 에서 제거) 런처를 명시해 두면 경고도 사라지고 9.x 로 올릴 때 그대로 간다.
+        testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    }
 
-    implementation 'com.fasterxml.jackson.core:jackson-databind'
-
-    	compileOnly 'org.projectlombok:lombok'
-	//runtimeOnly 'org.postgresql:postgresql'
-    runtimeOnly 'com.mysql:mysql-connector-j'
-
-	annotationProcessor 'org.projectlombok:lombok'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'io.projectreactor:reactor-test'
-	testImplementation 'org.springframework.kafka:spring-kafka-test'
-	testImplementation 'org.springframework.security:spring-security-test'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
-}
-
-tasks.named('test') {
-	useJUnitPlatform()
+    tasks.named('test') {
+        useJUnitPlatform()
+        testLogging {
+            events 'passed', 'skipped', 'failed'
+            showStandardStreams = false
+        }
+    }
 }

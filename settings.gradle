@@ -1,6 +1,10 @@
-pluginManagement {
-    plugins {
-        id 'org.jetbrains.kotlin.jvm' version '2.2.10'
-    }
+// Java 17 툴체인이 없는 머신에서도 빌드가 되도록 자동 프로비저닝 리졸버를 붙인다.
+// (Gradle 8.14 는 툴체인 다운로드 저장소가 설정돼 있지 않으면 곧바로 실패한다)
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
 }
-rootProject.name = 'demo'
+
+rootProject.name = 'interview-verify-lab'
+
+include 'verify-core'
+include 'verify-labs'

@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: interview-verify-lab
+
+  datasource:
+    # LOCK_TIMEOUT: JPA-07(비관적 락 대기) / DB-07(데드락) 케이스에서 필요
+    url: jdbc:h2:mem:verifylab;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;LOCK_TIMEOUT=10000
+    username: sa
+    password: ""
+    hikari:
+      maximum-pool-size: 20        # REQUIRES_NEW 중첩·비관적 락 케이스가 커넥션을 2개 이상 쓴다
+      pool-name: lab-pool
+
+  jpa:
+    open-in-view: false            # JPA-03(LazyInitializationException) 재현에 필수
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        generate_statistics: true  # JPA-01/02/05 의 SQL 수 측정에 필수
+        format_sql: false
+        session_factory:
+          # JPA-06: 실제 발행된 SQL 문자열을 잡아 limit 절 유무를 확인한다
+          statement_inspector: io.webboy.verify.labs.jpa.CapturingStatementInspector
+
+  h2:
+    console:
+      enabled: true                # http://localhost:8080/h2-console
+
+verify:
+  enabled: true
+  run-on-startup: false            # true 로 두면 기동 직후 전체 검증 + 리포트 저장
+  report-path: build/reports/verification.md
+  base-path: /verify
+  web:
+    enabled: true
+
+logging:
+  level:
+    root: info
+    org.hibernate.engine.internal.StatisticalLoggingSessionEventListener: warn
+    com.zaxxer.hikari.pool.HikariPool: error   # DB-06 이 일부러 풀을 고갈시킨다
