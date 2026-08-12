@@ -6,10 +6,10 @@
 그 명제를 코드로 재현해 `CONFIRMED` / `REFUTED` 판정을 남긴다.
 
 - Gradle **8.14.3** / Java **17** / Spring Boot **3.3.5**
-- 모듈 2개: `verify-core`(이식 가능한 하네스) + `verify-labs`(실제 검증 케이스 **57개**)
+- 모듈 3개: `verify-core`(이식 가능한 하네스) + `verify-labs`(**58개**) + `verify-labs-kafka`(실물 브로커 **5개**)
 - 답변 스크립트 Part 3~7(Q31~Q115)을 A/B/C 로 분류해 반영 — `docs/01-질문-검증-매핑.md`
-- DB 는 **PostgreSQL 16 실물**을 쓴다(`compose.yaml`). 인메모리 흉내가 아니라 실제 옵티마이저·MVCC·데드락 감지를 그대로 관측한다.
-- **실행 검증 완료** — 57건 전부 실행해 CONFIRMED 55 / REFUTED 0 / INCONCLUSIVE 2.
+- DB 는 **PostgreSQL 16**, 브로커는 **Kafka 3.9** 실물을 쓴다(`compose.yaml`). 흉내가 아니라 실제 옵티마이저·MVCC·파티션 재할당을 그대로 관측한다.
+- **실행 검증 완료** — 63건 전부 실행해 REFUTED 0 (CONFIRMED 60 / INCONCLUSIVE 3).
   그 과정에서 나온 문제와 해결은 `docs/05-개발-중-문제와-해결.md`
 
 ### 문서
@@ -35,7 +35,7 @@
 JDK 17 이 없는 머신이면 `settings.gradle` 의 foojay 리졸버가 툴체인을 자동으로 내려받는다.
 
 ```bash
-# 1. PostgreSQL 16 기동
+# 1. PostgreSQL 16 + Kafka 3.9 기동
 docker compose up -d
 
 # 2. 전체 검증 실행 + 리포트 생성
@@ -43,7 +43,11 @@ docker compose up -d
 
 # 3. 결과 확인
 cat verify-labs/build/reports/verification.md
+cat verify-labs-kafka/build/reports/verification-kafka.md
 ```
+
+Kafka 없이 DB 케이스만 돌리려면 `./gradlew :verify-labs:test` 를 쓰면 된다.
+`verify-labs-kafka` 는 브로커가 없으면 5건을 INCONCLUSIVE 로 남기고 테스트를 건너뛴다(실패가 아니다).
 
 `postgres:16` 을 못 받는 환경(Docker Hub 차단, 익명 pull 레이트 리밋)이면 레지스트리 미러를 걸면 된다.
 
@@ -95,7 +99,7 @@ curl localhost:8080/verify/report.md                 # 마크다운 리포트
 
 ---
 
-## 2. 검증 케이스 (57개)
+## 2. 검증 케이스 (63개)
 
 **spring** — 프록시와 트랜잭션 경계
 
@@ -175,6 +179,17 @@ curl localhost:8080/verify/report.md                 # 마크다운 리포트
 | RES-05 | Q62 Rate Limit | 고정 윈도 경계 2배 통과 + 확인/소비 경쟁 |
 | RES-06 | Q101 리프레시 토큰 회전 | 재사용 탐지 → 계보 전체 무효화 |
 | RES-07 | Q103 OAuth PKCE | 코드만 탈취한 공격자 차단 / plain 방식은 무력 |
+| RES-08 | **Q34 재시도 × 서킷브레이커** | 겹치는 순서가 결과를 바꾼다 — 원격 호출 6회 vs 12회, 서킷은 한쪽만 열림 |
+
+**kafka** — 실물 브로커 (`verify-labs-kafka` 모듈, 브로커 없으면 INCONCLUSIVE 후 건너뜀)
+
+| ID | 질문 | 검증 방법 |
+|---|---|---|
+| KAFKA-01 | Q41 순서 보증 범위 | 파티션 3개에 키별 발행 — 키 안에서는 순서 유지, 토픽 전체는 역전 / 오프셋 되감기 재소비 |
+| KAFKA-02 | Q42·Q45 컨슈머 랙 | AdminClient 로 실측 — 미소비 500 → 부분 처리 400 → 전량 처리 0 |
+| KAFKA-03 | Q43 헤드 오브 라인 블로킹 | 파티션 내 재시도는 뒤를 세우고, 재시도 토픽은 순서를 잃는다 |
+| KAFKA-04 | Q100 Exactly-Once | enable.idempotence 기본 true / abort 된 메시지는 read_committed 에만 안 보인다 |
+| KAFKA-05 | Q45·Q110 리밸런스 | 파티션 2개 + 컨슈머 3대 → 1:1 재할당 후 3번째는 논다 |
 
 **api / ai**
 

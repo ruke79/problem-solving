@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: interview-verify-lab-kafka
+  # 이 모듈은 DB 를 쓰지 않는다 — verify-labs 와 독립적으로 돈다
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+
+verify:
+  enabled: true
+  run-on-startup: false
+  report-path: build/reports/verification-kafka.md
+  base-path: /verify
+  web:
+    enabled: true
+  kafka:
+    # compose.yaml 의 kafka 서비스. 다른 브로커를 쓰려면 KAFKA_BOOTSTRAP_SERVERS 로 덮어쓴다.
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+
+logging:
+  level:
+    root: info
+    # 브로커가 없을 때 재접속 경고가 리포트를 덮는 것을 막는다 (케이스가 스스로 INCONCLUSIVE 를 남긴다)
+    org.apache.kafka.clients.NetworkClient: error
+    org.apache.kafka.clients.admin.AdminClientConfig: warn
+    org.apache.kafka.clients.consumer.ConsumerConfig: warn
+    org.apache.kafka.clients.producer.ProducerConfig: warn

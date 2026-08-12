@@ -8,3 +8,4 @@ rootProject.name = 'interview-verify-lab'
 
 include 'verify-core'
 include 'verify-labs'
+include 'verify-labs-kafka'
