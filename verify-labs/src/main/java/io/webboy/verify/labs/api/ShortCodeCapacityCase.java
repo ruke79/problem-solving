@@ -67,6 +67,8 @@ public class ShortCodeCapacityCase extends VerificationCase {
         evidence.expectEquals("Base62 인코딩/디코딩이 왕복한다", 123_456_789L, decoded);
         evidence.expect("연번 채번이면 다음 코드를 그대로 추측할 수 있다", !encoded.equals(next));
 
+        evidence.note("원고 원문 확인 완료(Part 5): 「7桁のBase62でおよそ350億通り」 / \"7자리 Base62로 약 350억 가지\". "
+                + "확정 수정문은 docs/06-원고-수정본-Part5.md §1 에 있다.");
         evidence.note("면접에서 자릿수를 말할 때는 62^n 을 즉석에서 계산할 수 있어야 한다. 62^6≈568억, 62^7≈3.5조.");
         evidence.note("연번 기반 코드는 다음 값이 추측 가능하므로, 비공개 캠페인 URL 같은 용도라면 랜덤성이나 해시 기반이 필요하다.");
         evidence.note("리다이렉트는 301 로 하면 브라우저가 캐시해 이후 서버로 오지 않아 클릭 수를 셀 수 없다 — 분석이 필요하면 302 를 쓴다.");
