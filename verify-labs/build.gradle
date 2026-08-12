@@ -13,7 +13,8 @@ dependencies {
     // RES-04: 서킷브레이커는 직접 구현하지 않고 실제 구현체로 검증한다
     implementation 'io.github.resilience4j:resilience4j-circuitbreaker:2.2.0'
 
-    runtimeOnly 'com.h2database:h2'
+    // DB 케이스는 PostgreSQL 16 실물에서 돈다 (compose.yaml 참고)
+    runtimeOnly 'org.postgresql:postgresql'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }

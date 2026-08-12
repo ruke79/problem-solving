@@ -3,13 +3,18 @@ spring:
     name: interview-verify-lab
 
   datasource:
-    # LOCK_TIMEOUT: JPA-07(비관적 락 대기) / DB-07(데드락) 케이스에서 필요
-    url: jdbc:h2:mem:verifylab;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;LOCK_TIMEOUT=10000
-    username: sa
-    password: ""
+    # PostgreSQL 16 실물을 쓴다. `docker compose up -d` 로 띄우거나(compose.yaml),
+    # 로컬/CI 의 다른 인스턴스를 쓰려면 환경변수로 덮어쓴다.
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/verifylab}
+    username: ${DB_USERNAME:verifylab}
+    password: ${DB_PASSWORD:verifylab}
+    driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 20        # REQUIRES_NEW 중첩·비관적 락 케이스가 커넥션을 2개 이상 쓴다
       pool-name: lab-pool
+      # JPA-07(비관적 락 대기) / DB-07(데드락) 이 영원히 매달리지 않도록 상한을 둔다.
+      # H2 의 접속 URL 파라미터 LOCK_TIMEOUT=10000 을 대체하는 설정이다.
+      connection-init-sql: SET lock_timeout = '10s'
 
   jpa:
     open-in-view: false            # JPA-03(LazyInitializationException) 재현에 필수
@@ -22,10 +27,6 @@ spring:
         session_factory:
           # JPA-06: 실제 발행된 SQL 문자열을 잡아 limit 절 유무를 확인한다
           statement_inspector: io.webboy.verify.labs.jpa.CapturingStatementInspector
-
-  h2:
-    console:
-      enabled: true                # http://localhost:8080/h2-console
 
 verify:
   enabled: true

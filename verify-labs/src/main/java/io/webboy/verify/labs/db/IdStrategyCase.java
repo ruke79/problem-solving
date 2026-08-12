@@ -84,8 +84,9 @@ public class IdStrategyCase extends VerificationCase {
         evidence.expect("UUID v4 는 생성 순서와 정렬 순서가 무관하다", !v4Sortable);
         evidence.expectFlaky("랜덤 UUID 삽입이 순차 ID 삽입보다 느리다", uuidV4Millis >= sequentialMillis);
 
-        evidence.note("정직한 고지: H2 인메모리는 InnoDB 같은 클러스터 인덱스가 아니고 디스크 페이지 분할도 발생하지 않는다. "
-                + "삽입 시간 차이는 '방향'만 참고하고, 실제 수치는 MySQL/PostgreSQL 에서 재야 한다.");
+        evidence.note("정직한 고지: PostgreSQL 은 힙 테이블 + 별도 B-tree 인덱스 구조라, PK 순서가 곧 물리적 저장 순서인 "
+                + "InnoDB 의 클러스터 인덱스와 다르다. 여기서 재는 것은 'PK 인덱스에 랜덤 삽입할 때의 비용'이고, "
+                + "InnoDB 특유의 페이지 분할 비용은 MySQL 에서 따로 재야 한다.");
         evidence.note("실무 절충안은 '내부 PK 는 BIGINT 자동 채번, 외부 공개 ID 는 별도 UUID 컬럼'의 2계층 구성이다.");
         evidence.note("연번 ID 를 외부에 노출하면 총 사용자 수·주문량이 추측된다는 정보 유출 측면도 함께 고려한다.");
     }

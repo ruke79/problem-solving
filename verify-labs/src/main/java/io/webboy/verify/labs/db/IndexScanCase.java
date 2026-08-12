@@ -5,6 +5,8 @@ import io.webboy.verify.core.VerificationCase;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 public class IndexScanCase extends VerificationCase {
 
@@ -46,8 +48,8 @@ public class IndexScanCase extends VerificationCase {
     protected void verify(Evidence evidence) {
         jdbc.execute("DROP TABLE IF EXISTS scan_demo");
         jdbc.execute("CREATE TABLE scan_demo (id INT PRIMARY KEY, k INT, payload VARCHAR(60))");
-        jdbc.update("INSERT INTO scan_demo SELECT X, MOD(X, " + ROWS + "), 'payload' FROM SYSTEM_RANGE(1, " + ROWS + ")");
-        jdbc.execute("ANALYZE");
+        jdbc.update("INSERT INTO scan_demo SELECT g, g % " + ROWS + ", 'payload' FROM generate_series(1, " + ROWS + ") AS g");
+        jdbc.execute("ANALYZE scan_demo");
 
         String selectiveQuery = "SELECT count(*) FROM scan_demo WHERE k = 42";
 
@@ -55,7 +57,7 @@ public class IndexScanCase extends VerificationCase {
         long millisBefore = timeOf(selectiveQuery);
 
         jdbc.execute("CREATE INDEX " + INDEX_NAME + " ON scan_demo (k)");
-        jdbc.execute("ANALYZE");
+        jdbc.execute("ANALYZE scan_demo");
 
         String planAfter = explain(selectiveQuery);
         long millisAfter = timeOf(selectiveQuery);
@@ -79,13 +81,16 @@ public class IndexScanCase extends VerificationCase {
         jdbc.execute("DROP TABLE IF EXISTS scan_demo");
 
         evidence.note("전환점(인덱스 → 풀스캔)은 선택도가 아니라 '읽어야 하는 페이지 비율'이 결정한다 — 클러스터링(correlation)의 함수다.");
-        evidence.note("H2 의 옵티마이저는 PostgreSQL 만큼 정교하지 않다. 실제 전환점 측정은 PostgreSQL 에서 해야 의미가 있다.");
+        evidence.note("PostgreSQL 실물이므로 EXPLAIN 문자열(Seq Scan / Index Scan / Index Only Scan)과 비용 추정치를 그대로 읽을 수 있다. "
+                + "다만 통계가 최신이어야 하므로 대량 INSERT 뒤에는 ANALYZE 가 선행돼야 한다 — 이 케이스도 매번 ANALYZE 한 뒤 측정한다.");
+        evidence.note("count(*) 는 인덱스만으로 답이 나와 Index Only Scan 이 잡히지만, visibility map 이 갱신되기 전이면 힙 페치가 섞인다.");
         evidence.note("인덱스는 공짜가 아니다 — DML 마다 인덱스도 갱신되고 HOT update 최적화가 깨진다.");
     }
 
+    /** PostgreSQL 의 EXPLAIN 은 계획 트리를 여러 행으로 돌려주므로 한 줄로 합쳐서 본다. */
     private String explain(String sql) {
-        String plan = jdbc.queryForObject("EXPLAIN " + sql, String.class);
-        return plan == null ? "" : plan.replaceAll("\\s+", " ").trim();
+        List<String> lines = jdbc.queryForList("EXPLAIN " + sql, String.class);
+        return String.join(" / ", lines).replaceAll("\\s+", " ").trim();
     }
 
     private long timeOf(String sql) {

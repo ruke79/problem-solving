@@ -8,8 +8,8 @@
 - Gradle **8.14.3** / Java **17** / Spring Boot **3.3.5**
 - 모듈 2개: `verify-core`(이식 가능한 하네스) + `verify-labs`(실제 검증 케이스 **52개**)
 - 답변 스크립트 Part 3~7(Q31~Q115)을 A/B/C 로 분류해 반영 — `docs/01-질문-검증-매핑.md`
-- 외부 인프라 의존 없음 — H2 인메모리만 사용. `./gradlew test` 하나로 전부 돌아간다.
-- **실행 검증 완료** — 52건 전부 실행해 CONFIRMED 48 / REFUTED 0 / INCONCLUSIVE 4.
+- DB 는 **PostgreSQL 16 실물**을 쓴다(`compose.yaml`). 인메모리 흉내가 아니라 실제 옵티마이저·MVCC·데드락 감지를 그대로 관측한다.
+- **실행 검증 완료** — 52건 전부 실행해 CONFIRMED 51 / REFUTED 0 / INCONCLUSIVE 1.
   그 과정에서 나온 문제와 해결은 `docs/05-개발-중-문제와-해결.md`
 
 ### 문서
@@ -21,23 +21,45 @@
 | `docs/02-정직한-고지.md` | 이 랩이 증명하지 **못하는** 것 |
 | `docs/03-새-케이스-추가-가이드.md` | 케이스 추가 방법 |
 | `docs/04-답변-원고-검토-지적사항.md` | 답변 원고에서 발견한 사실·표현 오류 |
-| `docs/05-개발-중-문제와-해결.md` | 빌드·실행 과정에서 발생한 문제 7건과 해결 |
+| `docs/05-개발-중-문제와-해결.md` | 빌드·실행·PostgreSQL 이관에서 발생한 문제 10건과 해결 |
 
 ---
 
 ## 1. 빠른 시작
 
-필요한 것은 **JDK 17 이상**과 네트워크뿐이다. Gradle 은 설치하지 않아도 된다 —
+필요한 것은 **JDK 17 이상**, **PostgreSQL 16**, 네트워크다. Gradle 은 설치하지 않아도 된다 —
 `gradle-wrapper.jar` 가 저장소에 들어 있어 `./gradlew` 가 8.14.3 배포판을 직접 받아 쓴다.
 JDK 17 이 없는 머신이면 `settings.gradle` 의 foojay 리졸버가 툴체인을 자동으로 내려받는다.
 
 ```bash
-# 전체 검증 실행 + 리포트 생성
+# 1. PostgreSQL 16 기동
+docker compose up -d
+
+# 2. 전체 검증 실행 + 리포트 생성
 ./gradlew :verify-labs:test
 
-# 결과 확인
+# 3. 결과 확인
 cat verify-labs/build/reports/verification.md
 ```
+
+Docker 를 쓰지 않고 이미 깔린 PostgreSQL 16 을 쓸 수도 있다. 계정과 DB 만 만들어 두면 된다.
+
+```bash
+psql -U postgres -c "CREATE ROLE verifylab LOGIN PASSWORD 'verifylab';" \
+                 -c "CREATE DATABASE verifylab OWNER verifylab;"
+```
+
+접속 정보는 환경변수로 덮어쓴다 — 기본값은 `jdbc:postgresql://localhost:5432/verifylab` / `verifylab` / `verifylab` 이다.
+
+```bash
+DB_URL=jdbc:postgresql://db.example.com:5432/verifylab \
+DB_USERNAME=someone DB_PASSWORD=secret \
+  ./gradlew :verify-labs:test
+```
+
+스키마는 `ddl-auto: create-drop` 이라 실행할 때마다 새로 만들고 끝나면 지운다.
+원시 SQL 로 만드는 테이블(`scan_demo`, `deadlock_demo` 등)도 각 케이스가 직접 지운다 —
+**검증 전용 DB 를 쓰는 것을 전제로 한다. 운영 DB 를 가리키게 하면 안 된다.**
 
 기동해서 HTTP 로 돌리는 방법:
 
@@ -239,9 +261,9 @@ interview-verify-lab/
 
 `docs/02-정직한-고지.md` 에 정리해 두었다. 요약하면:
 
-1. **DB 케이스는 H2 기준**이다. 격리 수준과 옵티마이저 동작은 제품마다 다르므로, PostgreSQL/MySQL 실측이 필요하면 별도 프로파일이 필요하다.
+1. **DB 케이스는 PostgreSQL 16 기준**이다. 격리 수준·옵티마이저·락 동작은 제품마다 다르므로, MySQL InnoDB 의 gap lock 이나 클러스터 인덱스 특성은 여기서 재현되지 않는다. 비교가 필요하면 `compose.yaml` 에 MySQL 을 추가하고 `DB_URL` 만 바꿔 같은 케이스를 돌리면 된다.
 2. **CON-02 는 JMH 가 아니다.** 단발 벽시계 측정이라 절대값이 아니라 자릿수만 신뢰한다.
-3. **환경 의존 케이스**(CON-01~03, CON-05, JVM-04, JVM-06, DB-01, DB-03, DB-05, DB-06, DB-07, JPA-07, RES-05, AI-03, AI-04)는 `INCONCLUSIVE` 가 나올 수 있고, 그것이 정상 동작이다.
+3. **환경 의존 케이스**(CON-01~03, CON-05, JVM-04, JVM-06, DB-03, DB-05, DB-06, DB-07, JPA-07, RES-05, AI-03, AI-04)는 `INCONCLUSIVE` 가 나올 수 있고, 그것이 정상 동작이다.
 4. **AI 케이스는 실제 임베딩 모델을 쓰지 않는다.** 랜덤 벡터와 가짜 검색기로 *알고리즘의 성질*만 검증한다.
 5. **리포트의 소요 시간은 장비 값이다.** 실행 환경(Java 17.0.19 / Linux / 4코어) 기준이라 그대로 인용하면 안 된다.
 
@@ -249,12 +271,24 @@ interview-verify-lab/
 
 ## 7. 실행 결과 (2026-08-11)
 
+PostgreSQL 16.13 / Java 17.0.19 / Linux 4코어 기준.
+
 | 판정 | 건수 |
 |---|---|
-| CONFIRMED | 48 |
+| CONFIRMED | 51 |
 | REFUTED | 0 |
-| INCONCLUSIVE | 4 (CON-02, DB-03, DB-05, RES-05 — 전부 `nondeterministic()` 케이스) |
+| INCONCLUSIVE | 1~3 (JVM-06, CON-02, DB-05 — 전부 `nondeterministic()` 케이스, 실행마다 흔들린다) |
 | ERROR | 0 |
 
+H2 인메모리에서 PostgreSQL 16 으로 옮기면서 `DB-01`(격리 수준)과 `DB-03`(실행계획)의 판정이
+`INCONCLUSIVE` → `CONFIRMED` 로 올라갔다. H2 옵티마이저로는 못 하던 관측이 실물에서는 그대로 잡힌다.
+
+```
+인덱스 전: Seq Scan on scan_demo (cost=0.00..1791.00 rows=1) Filter: (k = 42)
+인덱스 후: Index Only Scan using idx_scan_demo_k on scan_demo (cost=0.29..8.31 rows=1)
+데드락   : PSQLException (SQLState=40P01)   ← 락 타임아웃(55P03)이 아니라 진짜 데드락
+```
+
 처음 실행에서 `DB-07` 이 `REFUTED` 로 떨어졌고, 원인은 답변이 아니라 **검증 코드의 동기화 버그**였다.
-그 밖에 빌드가 서지 않던 문제들까지 포함해 `docs/05-개발-중-문제와-해결.md` 에 문제와 해결을 정리해 두었다.
+그 밖에 빌드가 서지 않던 문제, PostgreSQL 이관에서 깨진 H2 전용 SQL 까지
+`docs/05-개발-중-문제와-해결.md` 에 문제와 해결을 정리해 두었다.

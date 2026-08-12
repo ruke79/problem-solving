@@ -1,0 +1,27 @@
+# 검증 랩이 쓰는 PostgreSQL 16.
+#   docker compose up -d      # 기동
+#   ./gradlew :verify-labs:test
+#   docker compose down -v    # 정리
+#
+# 다른 인스턴스를 쓰려면 DB_URL / DB_USERNAME / DB_PASSWORD 환경변수로 덮어쓴다.
+services:
+  postgres:
+    image: postgres:16
+    container_name: verifylab-postgres
+    environment:
+      POSTGRES_DB: verifylab
+      POSTGRES_USER: verifylab
+      POSTGRES_PASSWORD: verifylab
+    ports:
+      - "5432:5432"
+    command:
+      # DB-06(풀 진단)이 스레드 20개로 커넥션을 동시에 잡는다. 기본값 100 이면 충분하지만
+      # 다른 앱과 인스턴스를 공유할 때를 대비해 여유를 준다.
+      - "postgres"
+      - "-c"
+      - "max_connections=200"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U verifylab -d verifylab"]
+      interval: 3s
+      timeout: 3s
+      retries: 10

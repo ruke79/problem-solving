@@ -77,6 +77,9 @@ public class DeadlockOrderingCase extends VerificationCase {
         evidence.fact("통일된 순서에서 발생한 오류", orderedError.get());
 
         evidence.expectFlaky("엇갈린 락 순서에서는 한쪽이 실패한다", crossFailures.get() >= 1);
+        // 실패의 '종류'까지 본다. 락 타임아웃(55P03)으로 실패하는 것은 데드락 재현이 아니다.
+        evidence.expectFlaky("엇갈린 순서의 실패는 락 타임아웃이 아니라 데드락(40P01)이다",
+                crossError.get().contains("40P01"));
         evidence.expectEquals("순서를 통일하면 아무도 실패하지 않는다", 0, orderedFailures.get());
 
         jdbc.execute("DROP TABLE IF EXISTS deadlock_demo");
@@ -108,7 +111,7 @@ public class DeadlockOrderingCase extends VerificationCase {
         Thread thread = new Thread(() -> {
             try (Connection connection = dataSource.getConnection()) {
                 connection.setAutoCommit(false);
-                connection.createStatement().execute("SET LOCK_TIMEOUT " + LOCK_TIMEOUT_MS);
+                connection.createStatement().execute("SET lock_timeout = " + LOCK_TIMEOUT_MS);
                 startGate.await(5, TimeUnit.SECONDS);
                 update(connection, order[0]);
                 if (rendezvousAfterFirstLock) {
@@ -119,7 +122,9 @@ public class DeadlockOrderingCase extends VerificationCase {
                 connection.commit();
             } catch (SQLException e) {
                 failures.incrementAndGet();
-                error.set(e.getClass().getSimpleName() + " (errorCode=" + e.getErrorCode() + ")");
+                // PostgreSQL 은 벤더 errorCode 를 쓰지 않는다(항상 0). 구분은 SQLState 로 한다 —
+                // 40P01 = deadlock detected, 55P03 = lock_not_available(lock_timeout 초과).
+                error.set(e.getClass().getSimpleName() + " (SQLState=" + e.getSQLState() + ")");
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             } finally {
