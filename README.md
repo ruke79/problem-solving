@@ -6,10 +6,10 @@
 그 명제를 코드로 재현해 `CONFIRMED` / `REFUTED` 판정을 남긴다.
 
 - Gradle **8.14.3** / Java **17** / Spring Boot **3.3.5**
-- 모듈 3개: `verify-core`(이식 가능한 하네스) + `verify-labs`(**58개**) + `verify-labs-kafka`(실물 브로커 **5개**)
+- 모듈 3개: `verify-core`(이식 가능한 하네스) + `verify-labs`(**81개**) + `verify-labs-kafka`(실물 브로커 **7개**)
 - 답변 스크립트 Part 3~7(Q31~Q115)을 A/B/C 로 분류해 반영 — `docs/01-질문-검증-매핑.md`
-- DB 는 **PostgreSQL 16**, 브로커는 **Kafka 3.9** 실물을 쓴다(`compose.yaml`). 흉내가 아니라 실제 옵티마이저·MVCC·파티션 재할당을 그대로 관측한다.
-- **실행 검증 완료** — 63건 전부 실행해 REFUTED 0 (CONFIRMED 60 / INCONCLUSIVE 3).
+- 인프라는 전부 실물이다(`compose.yaml`) — **PostgreSQL 16 + pgvector**, **스트리밍 레플리카**, **Kafka 3.9**, **Redis 7**. 흉내가 아니라 실제 옵티마이저·MVCC·복제 지연·파티션 재할당을 관측한다.
+- **실행 검증 완료** — **88건** 전부 실행해 REFUTED 0 (CONFIRMED 84 / INCONCLUSIVE 4).
   그 과정에서 나온 문제와 해결은 `docs/05-개발-중-문제와-해결.md`
 
 ### 문서
@@ -36,7 +36,7 @@
 JDK 17 이 없는 머신이면 `settings.gradle` 의 foojay 리졸버가 툴체인을 자동으로 내려받는다.
 
 ```bash
-# 1. PostgreSQL 16 + Kafka 3.9 기동
+# 1. 인프라 기동 (PostgreSQL 16 + 레플리카 + Kafka + Redis)
 docker compose up -d
 
 # 2. 전체 검증 실행 + 리포트 생성
@@ -100,7 +100,7 @@ curl localhost:8080/verify/report.md                 # 마크다운 리포트
 
 ---
 
-## 2. 검증 케이스 (63개)
+## 2. 검증 케이스 (88개)
 
 **spring** — 프록시와 트랜잭션 경계
 

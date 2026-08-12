@@ -13,6 +13,21 @@ dependencies {
     // RES-04: 서킷브레이커는 직접 구현하지 않고 실제 구현체로 검증한다
     implementation 'io.github.resilience4j:resilience4j-circuitbreaker:2.2.0'
 
+    // SEC-01·SEC-02 (Q19): CSRF·XSS 는 흉내내지 않고 실제 Spring Security 필터와 템플릿 엔진으로 검증한다
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    // 케이스가 서블릿 요청/응답을 만들어 실제 필터에 통과시키기 위해 필요하다 (테스트 전용 유틸이지만 케이스가 main 에 있다)
+    implementation 'org.springframework:spring-test'
+
+    // GQL-01 (Q11): GraphQL 의 N+1 을 실제 엔진에서 관측한다
+    implementation 'org.springframework.boot:spring-boot-starter-graphql'
+
+    // API-04 (Q129): 목이 실제 API 와 어긋나는 상황을 HTTP 레벨에서 재현한다
+    implementation 'org.wiremock:wiremock-standalone:3.9.1'
+
+    // RES-11 (Q154): WebSocket 스케일아웃의 pub/sub 백플레인
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
     // DB 케이스는 PostgreSQL 16 실물에서 돈다 (compose.yaml 참고)
     runtimeOnly 'org.postgresql:postgresql'
 

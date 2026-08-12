@@ -9,5 +9,8 @@ dependencies {
     // 각 케이스가 프로듀서/컨슈머 설정을 직접 들고 있어야 검증 대상이 분명해진다.
     implementation 'org.apache.kafka:kafka-clients'
 
+    // KAFKA-07: 스키마 호환성 판정을 Avro 의 공식 검사기로 한다 (Schema Registry 서버 없이)
+    implementation 'org.apache.avro:avro:1.11.4'
+
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
