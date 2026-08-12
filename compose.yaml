@@ -4,6 +4,10 @@
 #   docker compose down -v    # 정리
 #
 # 다른 인스턴스를 쓰려면 DB_URL / DB_USERNAME / DB_PASSWORD 환경변수로 덮어쓴다.
+#
+# 이미지를 못 받으면(Hub 차단·레이트 리밋) 데몬에 미러를 건다:
+#   /etc/docker/daemon.json → { "registry-mirrors": ["https://mirror.gcr.io"] }
+# 검증 완료: postgres:16 (16.14) 로 52건 전부 실행 — CONFIRMED 50 / REFUTED 0 / INCONCLUSIVE 2
 services:
   postgres:
     image: postgres:16

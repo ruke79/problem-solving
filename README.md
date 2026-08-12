@@ -21,7 +21,7 @@
 | `docs/02-정직한-고지.md` | 이 랩이 증명하지 **못하는** 것 |
 | `docs/03-새-케이스-추가-가이드.md` | 케이스 추가 방법 |
 | `docs/04-답변-원고-검토-지적사항.md` | 답변 원고에서 발견한 사실·표현 오류 |
-| `docs/05-개발-중-문제와-해결.md` | 빌드·실행·PostgreSQL 이관에서 발생한 문제 10건과 해결 |
+| `docs/05-개발-중-문제와-해결.md` | 빌드·실행·PostgreSQL 이관에서 발생한 문제 11건과 해결 |
 
 ---
 
@@ -40,6 +40,13 @@ docker compose up -d
 
 # 3. 결과 확인
 cat verify-labs/build/reports/verification.md
+```
+
+`postgres:16` 을 못 받는 환경(Docker Hub 차단, 익명 pull 레이트 리밋)이면 레지스트리 미러를 걸면 된다.
+
+```bash
+echo '{ "registry-mirrors": ["https://mirror.gcr.io"] }' > /etc/docker/daemon.json
+systemctl restart docker    # 데몬이 아예 안 떠 있으면: dockerd &
 ```
 
 Docker 를 쓰지 않고 이미 깔린 PostgreSQL 16 을 쓸 수도 있다. 계정과 DB 만 만들어 두면 된다.
@@ -271,7 +278,8 @@ interview-verify-lab/
 
 ## 7. 실행 결과 (2026-08-11)
 
-PostgreSQL 16.13 / Java 17.0.19 / Linux 4코어 기준.
+Java 17.0.19 / Linux 4코어 기준. DB 는 컨테이너 `postgres:16`(16.14)와 네이티브 설치본(16.13)
+양쪽에서 각각 돌렸고 결과가 같았다 — `compose.yaml` 은 실제로 기동해서 검증했다.
 
 | 판정 | 건수 |
 |---|---|
