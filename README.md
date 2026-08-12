@@ -6,10 +6,10 @@
 그 명제를 코드로 재현해 `CONFIRMED` / `REFUTED` 판정을 남긴다.
 
 - Gradle **8.14.3** / Java **17** / Spring Boot **3.3.5**
-- 모듈 2개: `verify-core`(이식 가능한 하네스) + `verify-labs`(실제 검증 케이스 **52개**)
+- 모듈 2개: `verify-core`(이식 가능한 하네스) + `verify-labs`(실제 검증 케이스 **57개**)
 - 답변 스크립트 Part 3~7(Q31~Q115)을 A/B/C 로 분류해 반영 — `docs/01-질문-검증-매핑.md`
 - DB 는 **PostgreSQL 16 실물**을 쓴다(`compose.yaml`). 인메모리 흉내가 아니라 실제 옵티마이저·MVCC·데드락 감지를 그대로 관측한다.
-- **실행 검증 완료** — 52건 전부 실행해 CONFIRMED 51 / REFUTED 0 / INCONCLUSIVE 1.
+- **실행 검증 완료** — 57건 전부 실행해 CONFIRMED 55 / REFUTED 0 / INCONCLUSIVE 2.
   그 과정에서 나온 문제와 해결은 `docs/05-개발-중-문제와-해결.md`
 
 ### 문서
@@ -24,6 +24,7 @@
 | `docs/05-개발-중-문제와-해결.md` | 빌드·실행·PostgreSQL 이관에서 발생한 문제 11건과 해결 |
 | `docs/06-원고-수정본-Part5.md` | Q61~Q75 원고 대조 결과와 확정된 수정문 (Q64 Base62 오기 포함) |
 | `docs/07-원고-수정본-Part6.md` | Q76~Q90 원고 대조 결과와 확정된 수정문 (Q77·Q78·Q87) |
+| `docs/08-PostgreSQL-로-늘어난-검증-범위.md` | PostgreSQL 로 새로 검증 가능해진 질문과 아직 안 되는 것 |
 
 ---
 
@@ -58,6 +59,10 @@ psql -U postgres -c "CREATE ROLE verifylab LOGIN PASSWORD 'verifylab';" \
                  -c "CREATE DATABASE verifylab OWNER verifylab;"
 ```
 
+`DB-10`(CDC)은 논리 복제 슬롯을 쓰므로 서버가 `wal_level=logical` 이어야 한다
+(`compose.yaml` 은 그렇게 띄운다). 기본값 `replica` 인 서버에서는 그 케이스만 `INCONCLUSIVE` 로 남고
+나머지는 정상 동작한다.
+
 접속 정보는 환경변수로 덮어쓴다 — 기본값은 `jdbc:postgresql://localhost:5432/verifylab` / `verifylab` / `verifylab` 이다.
 
 ```bash
@@ -90,7 +95,7 @@ curl localhost:8080/verify/report.md                 # 마크다운 리포트
 
 ---
 
-## 2. 검증 케이스 (52개)
+## 2. 검증 케이스 (57개)
 
 **spring** — 프록시와 트랜잭션 경계
 
@@ -142,7 +147,12 @@ curl localhost:8080/verify/report.md                 # 마크다운 리포트
 | DB-04 | Q104 프리페어드 스테이트먼트 | `' OR '1'='1` 로 전건 노출 vs 0건 |
 | DB-05 | Q106·Q107 UUID PK | UUIDv7 정렬 가능성 + 삽입 시간 |
 | DB-06 | **Q18·Q44·Q68 풀 고갈 원인 판별** | 누수 / 장시간 점유 / 용량 부족 3시나리오의 지표 모양 |
-| DB-07 | Q48 DB 데드락 | 엇갈린 순서 → 실패, 통일 → 무사고 |
+| DB-07 | Q48 DB 데드락 | 엇갈린 순서 → 데드락(40P01), 통일 → 무사고 |
+| DB-08 | **Q47 파티셔닝** | 파티션 프루닝(1개만 읽음) / DROP PARTITION vs DELETE 의 dead tuple |
+| DB-09 | Q97 write skew | REPEATABLE READ 는 통과시키고 SERIALIZABLE 이 40001 로 차단 |
+| DB-10 | **Q51 CDC** | 논리 복제 슬롯 — DELETE 는 기본 PK 만, FULL 이면 전체 값 / 미소비 슬롯이 WAL 점유 |
+| DB-11 | **Q40·Q73 DDL 락** | ADD COLUMN 1ms vs 타입 변경 재작성 / 락 큐가 뒤의 SELECT 까지 정지 |
+| DB-12 | Q61·Q100 멱등성 | 커넥션 20개 동시 진입 → 유니크 제약이 정확히 1건(23505) |
 
 **msa** — 분산 아키텍처
 
@@ -272,7 +282,7 @@ interview-verify-lab/
 
 1. **DB 케이스는 PostgreSQL 16 기준**이다. 격리 수준·옵티마이저·락 동작은 제품마다 다르므로, MySQL InnoDB 의 gap lock 이나 클러스터 인덱스 특성은 여기서 재현되지 않는다. 비교가 필요하면 `compose.yaml` 에 MySQL 을 추가하고 `DB_URL` 만 바꿔 같은 케이스를 돌리면 된다.
 2. **CON-02 는 JMH 가 아니다.** 단발 벽시계 측정이라 절대값이 아니라 자릿수만 신뢰한다.
-3. **환경 의존 케이스**(CON-01~03, CON-05, JVM-04, JVM-06, DB-03, DB-05, DB-06, DB-07, JPA-07, RES-05, AI-03, AI-04)는 `INCONCLUSIVE` 가 나올 수 있고, 그것이 정상 동작이다.
+3. **환경 의존 케이스**(CON-01~03, CON-05, JVM-04, JVM-06, DB-03, DB-05, DB-06, DB-07, DB-08, DB-10, DB-11, JPA-07, RES-05, AI-03, AI-04)는 `INCONCLUSIVE` 가 나올 수 있고, 그것이 정상 동작이다.
 4. **AI 케이스는 실제 임베딩 모델을 쓰지 않는다.** 랜덤 벡터와 가짜 검색기로 *알고리즘의 성질*만 검증한다.
 5. **리포트의 소요 시간은 장비 값이다.** 실행 환경(Java 17.0.19 / Linux / 4코어) 기준이라 그대로 인용하면 안 된다.
 
@@ -285,10 +295,14 @@ Java 17.0.19 / Linux 4코어 기준. DB 는 컨테이너 `postgres:16`(16.14)와
 
 | 판정 | 건수 |
 |---|---|
-| CONFIRMED | 51 |
+| CONFIRMED | 55 |
 | REFUTED | 0 |
-| INCONCLUSIVE | 1~3 (JVM-06, CON-02, DB-05 — 전부 `nondeterministic()` 케이스, 실행마다 흔들린다) |
+| INCONCLUSIVE | 2~4 (JVM-06, CON-02, DB-05, RES-05 — 전부 `nondeterministic()` 케이스, 실행마다 흔들린다) |
 | ERROR | 0 |
+
+PostgreSQL 로 바꾸면서 **검증 케이스가 52 → 57개**로 늘었다. Q47(파티셔닝)·Q51(CDC)이
+"인프라 없어서 못 함"에서 실행 검증으로 넘어왔고, Q40·Q73·Q61·Q97 의 검증 깊이가 올라갔다 —
+`docs/08-PostgreSQL-로-늘어난-검증-범위.md`.
 
 H2 인메모리에서 PostgreSQL 16 으로 옮기면서 `DB-01`(격리 수준)과 `DB-03`(실행계획)의 판정이
 `INCONCLUSIVE` → `CONFIRMED` 로 올라갔다. H2 옵티마이저로는 못 하던 관측이 실물에서는 그대로 잡힌다.

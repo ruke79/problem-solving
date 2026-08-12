@@ -24,6 +24,9 @@ services:
       - "postgres"
       - "-c"
       - "max_connections=200"
+      # DB-10(CDC 논리 복제 슬롯)이 요구한다. 기본값 replica 로는 논리 디코딩이 불가능하다.
+      - "-c"
+      - "wal_level=logical"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U verifylab -d verifylab"]
       interval: 3s
