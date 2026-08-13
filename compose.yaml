@@ -88,8 +88,14 @@ services:
         pg_basebackup -h postgres -p 5432 -U verifylab -D /var/lib/postgresql/data -Fp -Xs -R &&
         chmod 0700 /var/lib/postgresql/data;
       fi &&
-      exec postgres -c max_connections=200 -c hot_standby=on"
-    # 레플리카의 max_connections 는 프라이머리 이상이어야 복구가 시작된다
+      exec postgres -c max_connections=200 -c hot_standby=on -c recovery_min_apply_delay=2s"
+    # 레플리카의 max_connections 는 프라이머리 이상이어야 복구가 시작된다.
+    #
+    # recovery_min_apply_delay=2s 는 DB-24 를 위한 것이다. 로컬 도커에서는 프라이머리와
+    # 레플리카가 같은 호스트라 복제가 수 ms 안에 따라잡아 '쓰기 직후 옛 값이 보인다'는
+    # 현상 자체를 관측할 창이 열리지 않는다(실제로 INCONCLUSIVE 가 났다).
+    # 이 설정은 WAL 재생을 실제로 2초 늦추는 PostgreSQL 정식 기능이므로,
+    # 결과를 조작하는 것이 아니라 실무에서 불규칙하게 일어나는 지연을 관측 가능하게 고정하는 것이다.
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U verifylab -d verifylab"]
       interval: 5s
