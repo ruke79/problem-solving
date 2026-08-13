@@ -59,7 +59,7 @@ public class EventSourcingSnapshotCase extends VerificationCase {
         jdbc.execute("ANALYZE es_events");
 
         long fullReplayed = countReplayed(0);
-        long fullMillis = timed(() -> replay(0));
+        long fullMicros = timed(() -> replay(0));
         int fullState = replay(0);
 
         // 스냅샷: 마지막 스냅샷 지점까지의 상태를 미리 계산해 둔다
@@ -69,21 +69,24 @@ public class EventSourcingSnapshotCase extends VerificationCase {
         jdbc.update("INSERT INTO es_snapshots VALUES (1, ?, ?)", snapshotSeq, replayUpTo(snapshotSeq));
 
         long deltaReplayed = countReplayed(snapshotSeq);
-        long snapshotMillis = timed(() -> replayFromSnapshot());
+        long snapshotMicros = timed(() -> replayFromSnapshot());
         int snapshotState = replayFromSnapshot();
 
         evidence.fact("이벤트 수 / 스냅샷 주기", EVENTS + " / " + SNAPSHOT_EVERY);
         evidence.fact("[전량 재생] 읽은 이벤트 수", fullReplayed);
-        evidence.fact("[전량 재생] 소요(ms)", fullMillis);
+        evidence.fact("[전량 재생] 소요(us)", fullMicros);
         evidence.fact("[전량 재생] 복원한 상태", fullState);
         evidence.fact("[스냅샷 + 델타] 읽은 이벤트 수", deltaReplayed);
-        evidence.fact("[스냅샷 + 델타] 소요(ms)", snapshotMillis);
+        evidence.fact("[스냅샷 + 델타] 소요(us)", snapshotMicros);
         evidence.fact("[스냅샷 + 델타] 복원한 상태", snapshotState);
 
         evidence.expectEquals("두 방식의 복원 결과는 같아야 한다", fullState, snapshotState);
         evidence.expectEquals("스냅샷을 쓰면 스냅샷 이후 이벤트만 읽는다", (long) SNAPSHOT_EVERY, deltaReplayed);
         evidence.expect("읽는 이벤트 수가 한 자릿수 배 이상 줄어든다", deltaReplayed * 10 <= fullReplayed);
-        evidence.expectFlaky("재생 시간도 줄어든다", snapshotMillis <= fullMillis);
+        evidence.fact("전량 재생 / 스냅샷 배수",
+                snapshotMicros == 0 ? "측정 불가" : String.format("%.1f배", (double) fullMicros / snapshotMicros));
+        // `<=` 로 두면 둘 다 0 이어도 통과한다. 마이크로초로 재고 여유를 요구한다(실측 약 2.6배).
+        evidence.expectFlaky("재생 시간이 1.5배 이상 줄어든다", snapshotMicros * 3 < fullMicros * 2);
 
         jdbc.execute("DROP TABLE IF EXISTS es_events");
         jdbc.execute("DROP TABLE IF EXISTS es_snapshots");
@@ -124,6 +127,6 @@ public class EventSourcingSnapshotCase extends VerificationCase {
     private long timed(Runnable work) {
         long began = System.nanoTime();
         work.run();
-        return (System.nanoTime() - began) / 1_000_000L;
+        return (System.nanoTime() - began) / 1_000L;
     }
 }

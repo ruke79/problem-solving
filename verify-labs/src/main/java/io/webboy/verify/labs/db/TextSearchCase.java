@@ -64,17 +64,17 @@ public class TextSearchCase extends VerificationCase {
         jdbc.execute("ANALYZE text_demo");
 
         String prefixPlan = explain("SELECT count(*) FROM text_demo WHERE title LIKE 'product 42%'");
-        long prefixMillis = timed("SELECT count(*) FROM text_demo WHERE title LIKE 'product 42%'");
+        long prefixMicros = timed("SELECT count(*) FROM text_demo WHERE title LIKE 'product 42%'");
 
         String infixPlan = explain("SELECT count(*) FROM text_demo WHERE title LIKE '%ergonomic key%'");
-        long infixMillis = timed("SELECT count(*) FROM text_demo WHERE title LIKE '%ergonomic key%'");
+        long infixMicros = timed("SELECT count(*) FROM text_demo WHERE title LIKE '%ergonomic key%'");
 
         // PostgreSQL 의 전문 검색 인덱스 — 형태소 분석은 아니지만 어휘 단위 검색은 인덱스로 처리된다
         jdbc.execute("CREATE INDEX idx_text_fts ON text_demo USING GIN (to_tsvector('simple', title))");
         jdbc.execute("ANALYZE text_demo");
         String ftsPlan = explain("SELECT count(*) FROM text_demo "
                 + "WHERE to_tsvector('simple', title) @@ to_tsquery('simple', 'ergonomic')");
-        long ftsMillis = timed("SELECT count(*) FROM text_demo "
+        long ftsMicros = timed("SELECT count(*) FROM text_demo "
                 + "WHERE to_tsvector('simple', title) @@ to_tsquery('simple', 'ergonomic')");
 
         boolean prefixUsesIndex = prefixPlan.toLowerCase(Locale.ROOT).contains("idx_text_title");
@@ -83,16 +83,19 @@ public class TextSearchCase extends VerificationCase {
 
         evidence.fact("행 수", ROWS);
         evidence.fact("전방 일치 LIKE 'product 42%' 계획", prefixPlan);
-        evidence.fact("전방 일치 소요(ms)", prefixMillis);
+        evidence.fact("전방 일치 소요(us)", prefixMicros);
         evidence.fact("중간 일치 LIKE '%ergonomic key%' 계획", infixPlan);
-        evidence.fact("중간 일치 소요(ms)", infixMillis);
+        evidence.fact("중간 일치 소요(us)", infixMicros);
         evidence.fact("GIN 전문 검색 계획", ftsPlan);
-        evidence.fact("GIN 전문 검색 소요(ms)", ftsMillis);
+        evidence.fact("GIN 전문 검색 소요(us)", ftsMicros);
 
         evidence.expect("전방 일치는 B+Tree 인덱스를 탄다", prefixUsesIndex);
         evidence.expect("중간 일치는 인덱스를 못 타고 전건 스캔이 된다", infixIsSeqScan);
         evidence.expect("PostgreSQL 의 GIN 전문 검색 인덱스는 어휘 검색을 인덱스로 처리한다", ftsUsesIndex);
-        evidence.expectFlaky("전건 스캔이 인덱스 검색보다 느리다", infixMillis >= prefixMillis);
+        evidence.fact("중간 일치 / 전방 일치 배수",
+                prefixMicros == 0 ? "측정 불가" : String.format("%.1f배", (double) infixMicros / prefixMicros));
+        // `>=` 로 두면 둘 다 0 이어도 통과한다. 마이크로초로 재고 여유를 요구한다(실측 약 10배).
+        evidence.expectFlaky("전건 스캔이 인덱스 검색보다 3배 이상 느리다", infixMicros > prefixMicros * 3);
 
         jdbc.execute("DROP TABLE IF EXISTS text_demo");
 
@@ -110,6 +113,6 @@ public class TextSearchCase extends VerificationCase {
     private long timed(String sql) {
         long began = System.nanoTime();
         jdbc.queryForObject(sql, Long.class);
-        return (System.nanoTime() - began) / 1_000_000L;
+        return (System.nanoTime() - began) / 1_000L;
     }
 }

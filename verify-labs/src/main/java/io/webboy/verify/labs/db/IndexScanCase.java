@@ -54,13 +54,13 @@ public class IndexScanCase extends VerificationCase {
         String selectiveQuery = "SELECT count(*) FROM scan_demo WHERE k = 42";
 
         String planBefore = explain(selectiveQuery);
-        long millisBefore = timeOf(selectiveQuery);
+        long microsBefore = timeOf(selectiveQuery);
 
         jdbc.execute("CREATE INDEX " + INDEX_NAME + " ON scan_demo (k)");
         jdbc.execute("ANALYZE scan_demo");
 
         String planAfter = explain(selectiveQuery);
-        long millisAfter = timeOf(selectiveQuery);
+        long microsAfter = timeOf(selectiveQuery);
 
         String planLowSelectivity = explain("SELECT count(*) FROM scan_demo WHERE k >= 0");
 
@@ -68,13 +68,17 @@ public class IndexScanCase extends VerificationCase {
         evidence.fact("인덱스 전 실행계획", planBefore);
         evidence.fact("인덱스 후 실행계획", planAfter);
         evidence.fact("낮은 선택도(k >= 0) 실행계획", planLowSelectivity);
-        evidence.fact("인덱스 전 소요(ms)", millisBefore);
-        evidence.fact("인덱스 후 소요(ms)", millisAfter);
+        evidence.fact("인덱스 전 소요(us)", microsBefore);
+        evidence.fact("인덱스 후 소요(us)", microsAfter);
 
         evidence.expect("인덱스 생성 전후로 실행계획이 달라진다", !planBefore.equals(planAfter));
         evidence.expectFlaky("높은 선택도 조건에서 인덱스가 선택된다",
                 planAfter.toUpperCase().contains(INDEX_NAME));
-        evidence.expectFlaky("인덱스 적용 후가 더 빠르다", millisAfter <= millisBefore);
+        evidence.fact("인덱스 적용 전/후 배수",
+                microsAfter == 0 ? "측정 불가" : String.format("%.1f배", (double) microsBefore / microsAfter));
+        // `after <= before` 로 두면 둘 다 0 이어도 통과한다 — 근거 없이 CONFIRMED 가 찍힌다.
+        // 밀리초로 자르던 시절에는 실제로 0 대 0 이 될 수 있었다. 마이크로초로 재고 여유를 요구한다.
+        evidence.expectFlaky("인덱스 적용 후가 3배 이상 빠르다", microsAfter * 3 < microsBefore);
         evidence.expectFlaky("낮은 선택도에서는 옵티마이저가 인덱스를 쓰지 않는다",
                 !planLowSelectivity.toUpperCase().contains(INDEX_NAME));
 
@@ -96,6 +100,6 @@ public class IndexScanCase extends VerificationCase {
     private long timeOf(String sql) {
         long began = System.nanoTime();
         jdbc.queryForObject(sql, Long.class);
-        return (System.nanoTime() - began) / 1_000_000L;
+        return (System.nanoTime() - began) / 1_000L;
     }
 }
