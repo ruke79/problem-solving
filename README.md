@@ -8,6 +8,7 @@
 - Gradle **8.14.3** / Java **17** / Spring Boot **3.3.5**
 - 모듈 3개: `verify-core`(이식 가능한 하네스) + `verify-labs`(**81개**) + `verify-labs-kafka`(실물 브로커 **7개**)
 - 답변 스크립트 Part 3~7(Q31~Q115)을 A/B/C 로 분류해 반영 — `docs/01-질문-검증-매핑.md`
+- 검증 케이스 **95건** (verify-labs 88 + verify-labs-kafka 7), 12개 분류.
 - 인프라는 전부 실물이다(`compose.yaml`) — **PostgreSQL 16 + pgvector**, **스트리밍 레플리카**, **Kafka 3.9**, **Redis 7**. 흉내가 아니라 실제 옵티마이저·MVCC·복제 지연·파티션 재할당을 관측한다.
 - **실행 검증 완료** — **88건** 전부 실행해 REFUTED 0 (CONFIRMED 84 / INCONCLUSIVE 4).
   그 과정에서 나온 문제와 해결은 `docs/05-개발-중-문제와-해결.md`
