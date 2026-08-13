@@ -38,6 +38,9 @@ spring:
   data:
     redis:
       host: ${REDIS_HOST:localhost}
+      # compose.yaml 은 Redis 호스트 포트를 도커가 임의로 고르게 한다(6379 충돌 회피).
+      # `./gradlew test` 는 실제 배정된 포트를 감지해 REDIS_PORT 로 넘긴다(verify-labs/build.gradle).
+      # 앱을 직접 띄울 때는 `docker compose port redis 6379` 로 확인해 지정한다.
       port: ${REDIS_PORT:6379}
 
 verify:

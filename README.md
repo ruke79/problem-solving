@@ -50,6 +50,17 @@ cat verify-labs-kafka/build/reports/verification-kafka.md
 Kafka 없이 DB 케이스만 돌리려면 `./gradlew :verify-labs:test` 를 쓰면 된다.
 `verify-labs-kafka` 는 브로커가 없으면 5건을 INCONCLUSIVE 로 남기고 테스트를 건너뛴다(실패가 아니다).
 
+**Redis 는 호스트 포트를 도커가 임의로 고른다.** 6379 는 개발 장비에 이미 떠 있는 경우가 흔해
+고정하면 `docker compose up` 이 포트 충돌로 실패하기 때문이다. `./gradlew test` 는 실행 직전에
+배정된 포트를 감지해 `REDIS_PORT` 로 넘기므로 위 두 줄은 그대로 쓰면 된다.
+
+```bash
+docker compose port redis 6379    # 실제로 배정된 포트 확인 (예: 0.0.0.0:32768)
+REDIS_PORT=6390 docker compose up -d redis   # 특정 포트로 고정하고 싶을 때
+```
+
+앱을 직접 띄우거나(`bootRun`) IDE 에서 돌릴 때는 위에서 확인한 포트를 `REDIS_PORT` 로 지정한다.
+
 `postgres:16` 을 못 받는 환경(Docker Hub 차단, 익명 pull 레이트 리밋)이면 레지스트리 미러를 걸면 된다.
 
 ```bash

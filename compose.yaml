@@ -107,7 +107,13 @@ services:
     image: redis:7-alpine
     container_name: verifylab-redis
     ports:
-      - "6379:6379"
+      # 호스트 포트를 0 으로 두면 도커가 비어 있는 포트를 골라 준다.
+      # 6379 는 개발 장비에 이미 떠 있는 경우가 흔해(로컬 Redis, 다른 프로젝트의 compose)
+      # 고정하면 `docker compose up` 이 포트 충돌로 실패한다.
+      # 실제로 배정된 포트는 `docker compose port redis 6379` 로 확인하며,
+      # `./gradlew test` 는 이 값을 자동으로 읽어 REDIS_PORT 로 넘긴다(build.gradle 참고).
+      # 특정 포트로 고정하고 싶으면 REDIS_PORT 환경변수를 주면 된다.
+      - "${REDIS_PORT:-0}:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 3s
