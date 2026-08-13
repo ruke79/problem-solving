@@ -28,6 +28,44 @@ public final class VerificationReport {
         return sb.toString();
     }
 
+    /**
+     * 케이스 하나를 콘솔에 자세히 펼친다 — 케이스별 실행에서 <b>무엇을 보고 그렇게 판정했는지</b>를
+     * 리포트 파일을 열지 않고 바로 확인하기 위한 것이다.
+     */
+    public static String describe(VerificationResult r) {
+        String line = "─".repeat(100);
+        StringBuilder sb = new StringBuilder();
+        sb.append('\n').append(line).append('\n');
+        sb.append(String.format("%s  [%s]  %s  (%d ms)%n", r.id(), r.category(), badge(r), r.elapsedMillis()));
+        sb.append("질문: ").append(r.question()).append('\n');
+        sb.append("주장: ").append(r.claim()).append('\n');
+        if (r.error() != null) {
+            sb.append("오류: ").append(r.error()).append('\n');
+        }
+        if (!r.facts().isEmpty()) {
+            sb.append("── 관측값\n");
+            r.facts().forEach((key, value) ->
+                    sb.append("   · ").append(key).append(" = ").append(truncate(value, 120)).append('\n'));
+        }
+        if (!r.expectations().isEmpty()) {
+            sb.append("── 검증 항목\n");
+            for (Evidence.Expectation expectation : r.expectations()) {
+                sb.append("   ").append(expectation.satisfied() ? "[O]" : "[X]").append(' ')
+                        .append(expectation.description())
+                        .append(expectation.flaky() ? "   (환경 의존)" : "")
+                        .append('\n');
+            }
+        }
+        if (!r.notes().isEmpty()) {
+            sb.append("── 메모\n");
+            for (String note : r.notes()) {
+                sb.append("   - ").append(note).append('\n');
+            }
+        }
+        sb.append(line).append('\n');
+        return sb.toString();
+    }
+
     public static String summaryLine(List<VerificationResult> results) {
         long confirmed = results.stream().filter(r -> r.verdict() == Verdict.CONFIRMED).count();
         long refuted = results.stream().filter(r -> r.verdict() == Verdict.REFUTED).count();

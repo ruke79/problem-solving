@@ -51,6 +51,40 @@ cat verify-labs/build/reports/verification.md
 cat verify-labs-kafka/build/reports/verification-kafka.md
 ```
 
+### 케이스 하나씩 확인하기
+
+케이스마다 테스트가 하나씩 생긴다. Gradle·IDE 의 테스트 목록에
+`[DB-14] db — 복합 인덱스 (A, B) 를 만들었는데 …` 처럼 뜨므로
+**어느 케이스가 통과했고 어느 것이 깨졌는지 목록에서 바로 보이고**, 실패한 것만 다시 돌릴 수 있다.
+
+하나만 돌리려면 `-Dverify.only` 를 준다. 이때는 **판정 근거(관측값·검증 항목·메모)가 콘솔에 그대로** 나온다.
+
+```bash
+./gradlew :verify-labs:test -Dverify.only=DB-14          # 케이스 하나
+./gradlew :verify-labs:test -Dverify.only=SEC            # id 접두사 → SEC-01~05
+./gradlew :verify-labs:test -Dverify.only=observability  # 분류 전체
+./gradlew :verify-labs:test -Dverify.only=DB-14,SEC-03   # 여러 개
+./gradlew :verify-labs-kafka:test -Dverify.only=KAFKA-05 # Kafka 모듈
+```
+
+출력은 이런 모양이다.
+
+```
+DB-14  [db]  CONFIRMED  (793 ms)
+질문: 복합 인덱스 (A, B) 를 만들었는데 B 만 조건에 넣으면 어떻게 됩니까?
+── 관측값
+   · 선행 컬럼 조회의 계획 비용 = 8.41
+   · 후행 컬럼만 조회의 계획 비용 = 3706.93
+   · 비용 배수(후행 ÷ 선행) = 441배
+── 검증 항목
+   [O] 선행 컬럼 조건은 인덱스를 탄다
+   [O] 후행 컬럼만으로는 탐색 범위를 좁히지 못해 비용이 10배 이상으로 뛴다
+   ...
+```
+
+골라 돌린 결과는 전체 리포트를 덮지 않고 `verification-selected.md` 에 따로 남는다.
+잘못된 id 를 주면 쓸 수 있는 id 목록을 콘솔에 보여 준다.
+
 Kafka 없이 DB 케이스만 돌리려면 `./gradlew :verify-labs:test` 를 쓰면 된다.
 `verify-labs-kafka` 는 브로커가 없으면 5건을 INCONCLUSIVE 로 남기고 테스트를 건너뛴다(실패가 아니다).
 

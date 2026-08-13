@@ -35,9 +35,24 @@ subprojects {
 
     tasks.named('test') {
         useJUnitPlatform()
+
+        // 케이스를 골라 돌리는 스위치. 케이스마다 테스트가 하나씩 생기므로
+        // 이것 없이도 리포트에서 개별 결과가 보이지만, 하나만 다시 돌릴 때 쓴다.
+        //   ./gradlew :verify-labs:test -Dverify.only=DB-14
+        //   ./gradlew :verify-labs:test -Dverify.only=SEC            (id 접두사)
+        //   ./gradlew :verify-labs:test -Dverify.only=observability  (분류)
+        String only = System.getProperty('verify.only')
+        if (only) {
+            systemProperty 'verify.only', only
+            // 필터를 바꿔 가며 돌리는 상황이므로 UP-TO-DATE 로 건너뛰지 않게 한다
+            outputs.upToDateWhen { false }
+        }
+
         testLogging {
             events 'passed', 'skipped', 'failed'
-            showStandardStreams = false
+            // 케이스를 골라 돌릴 때는 판정 근거(관측값·검증 항목)를 콘솔에 그대로 보여 준다.
+            // 전건 실행에서 켜면 출력이 수천 줄이 되므로 그때는 끈다.
+            showStandardStreams = (only as boolean)
         }
 
         // compose.yaml 은 인프라의 호스트 포트를 고정하지 않는다 — 5432·9092·6379 는 개발 장비에
