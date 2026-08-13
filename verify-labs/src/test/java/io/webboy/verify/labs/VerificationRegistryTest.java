@@ -31,6 +31,6 @@ class VerificationRegistryTest {
     @Test
     void 분류가_예상_범위_안에_있다() {
         assertThat(registry.categories())
-                .containsExactlyInAnyOrder("ai", "api", "concurrency", "db", "jpa", "jvm", "msa", "resilience", "security", "spring");
+                .containsExactlyInAnyOrder("ai", "api", "concurrency", "db", "jpa", "jvm", "msa", "observability", "resilience", "security", "spring");
     }
 }

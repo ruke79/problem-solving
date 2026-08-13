@@ -28,6 +28,12 @@ dependencies {
     // RES-11 (Q154): WebSocket 스케일아웃의 pub/sub 백플레인
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
+    // OBS-* (Q33): 트레이스 컨텍스트 전파를 흉내내지 않고 실제 OpenTelemetry SDK 로 관측한다.
+    // 콜렉터는 띄우지 않고 InMemorySpanExporter 로 스팬을 받는다 — 인프라 없이 실물 계측을 쓴다.
+    // 버전은 Spring Boot BOM 이 관리한다(opentelemetry-bom).
+    implementation 'io.opentelemetry:opentelemetry-sdk'
+    implementation 'io.opentelemetry:opentelemetry-sdk-testing'
+
     // DB 케이스는 PostgreSQL 16 실물에서 돈다 (compose.yaml 참고)
     runtimeOnly 'org.postgresql:postgresql'
 
