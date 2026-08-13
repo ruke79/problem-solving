@@ -32,7 +32,7 @@ public class ReplicationLagCase extends VerificationCase {
 
     public ReplicationLagCase(
             JdbcTemplate primary,
-            @Value("${verify.replica.url:jdbc:postgresql://localhost:5433/verifylab}") String replicaUrl,
+            @Value("${verify.replica.url:jdbc:postgresql://localhost:${REPLICA_PORT:5433}/verifylab}") String replicaUrl,
             @Value("${spring.datasource.username:verifylab}") String username,
             @Value("${spring.datasource.password:verifylab}") String password) {
         this.primary = primary;

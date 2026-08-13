@@ -36,6 +36,9 @@
 JDK 17 이 없는 머신이면 `settings.gradle` 의 foojay 리졸버가 툴체인을 자동으로 내려받는다.
 
 ```bash
+# 0. 인프라가 쓸 호스트 포트를 빈 것으로 골라 둔다 (.env 생성, 한 번만)
+./scripts/random-ports.sh
+
 # 1. 인프라 기동 (PostgreSQL 16 + 레플리카 + Kafka + Redis)
 docker compose up -d
 
@@ -50,16 +53,27 @@ cat verify-labs-kafka/build/reports/verification-kafka.md
 Kafka 없이 DB 케이스만 돌리려면 `./gradlew :verify-labs:test` 를 쓰면 된다.
 `verify-labs-kafka` 는 브로커가 없으면 5건을 INCONCLUSIVE 로 남기고 테스트를 건너뛴다(실패가 아니다).
 
-**Redis 는 호스트 포트를 도커가 임의로 고른다.** 6379 는 개발 장비에 이미 떠 있는 경우가 흔해
-고정하면 `docker compose up` 이 포트 충돌로 실패하기 때문이다. `./gradlew test` 는 실행 직전에
-배정된 포트를 감지해 `REDIS_PORT` 로 넘기므로 위 두 줄은 그대로 쓰면 된다.
+### 포트는 고정하지 않는다
+
+5432(PostgreSQL) · 9092(Kafka) · 6379(Redis) 는 개발 장비에 이미 떠 있는 경우가 흔하다.
+하나만 충돌해도 `docker compose up` 이 실패해 **인프라 전체가 안 뜬다.** 그래서 전부 비워 두었다.
+
+- `scripts/random-ports.sh` 가 빈 포트를 골라 `.env` 에 적고, `docker compose` 가 이를 자동으로 읽는다.
+- `./gradlew test` 는 실행 직전에 **지금 실제로 열려 있는 포트**를 도커에게 물어
+  `DB_PORT` / `REPLICA_PORT` / `KAFKA_PORT` / `REDIS_PORT` 로 넘긴다. 위 세 줄은 그대로 쓰면 된다.
+
+`.env` 없이 `docker compose up -d` 만 해도 된다. PostgreSQL · 레플리카 · Redis 는 호스트 포트가
+`0` 이라 도커가 알아서 빈 포트를 배정한다. **Kafka 만 예외로 9092 를 쓴다** — 클라이언트가 처음 접속한 뒤
+브로커가 알려 주는 advertised listener 주소로 *다시* 접속하므로, 그 주소를 브로커 기동 시점에
+알고 있어야 하기 때문이다. 9092 가 이미 쓰이고 있다면 위 스크립트를 돌리거나 `KAFKA_PORT` 를 직접 주면 된다.
 
 ```bash
-docker compose port redis 6379    # 실제로 배정된 포트 확인 (예: 0.0.0.0:32768)
-REDIS_PORT=6390 docker compose up -d redis   # 특정 포트로 고정하고 싶을 때
+docker compose port postgres 5432   # 실제 배정 포트 확인 (예: 0.0.0.0:52939)
+docker compose port kafka 19092     # Kafka 는 호스트용 리스너가 19092 다
+KAFKA_PORT=19099 docker compose up -d kafka   # 특정 포트로 고정하고 싶을 때
 ```
 
-앱을 직접 띄우거나(`bootRun`) IDE 에서 돌릴 때는 위에서 확인한 포트를 `REDIS_PORT` 로 지정한다.
+앱을 직접 띄우거나(`bootRun`) IDE 에서 돌릴 때는 위에서 확인한 포트를 환경변수로 지정한다.
 
 `postgres:16` 을 못 받는 환경(Docker Hub 차단, 익명 pull 레이트 리밋)이면 레지스트리 미러를 걸면 된다.
 

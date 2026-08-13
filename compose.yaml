@@ -18,7 +18,9 @@ services:
       POSTGRES_USER: verifylab
       POSTGRES_PASSWORD: verifylab
     ports:
-      - "5432:5432"
+      # 호스트 포트를 0 으로 두면 도커가 빈 포트를 배정한다(5432 는 이미 떠 있는 경우가 흔하다).
+      # `scripts/random-ports.sh` 로 DB_PORT 를 미리 정해 두면 그 값을 쓴다.
+      - "${DB_PORT:-0}:5432"
     volumes:
       # 복제 접속 허용 (레플리카가 pg_basebackup 으로 붙는다)
       - ./docker/primary-init:/docker-entrypoint-initdb.d:ro
@@ -47,16 +49,22 @@ services:
     image: apache/kafka:3.9.0
     container_name: verifylab-kafka
     ports:
-      - "9092:9092"
+      # Kafka 만은 호스트 포트를 도커에게 맡길 수 없다. 클라이언트는 처음 접속한 뒤
+      # 브로커가 알려 주는 advertised listener 주소로 '다시' 접속하기 때문에,
+      # 그 주소가 호스트에서 실제로 열린 포트와 같아야 한다.
+      # 그래서 포트를 먼저 정해 KAFKA_PORT 로 넘긴다 — `scripts/random-ports.sh` 가 빈 포트를 골라 준다.
+      - "${KAFKA_PORT:-9092}:19092"
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
-      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      # INTERNAL(9092)  : 도커 네트워크 안에서 쓰는 리스너 — 헬스체크·브로커 간 통신
+      # HOST(19092)     : 호스트에서 들어오는 리스너 — 위 ports 매핑의 대상
+      KAFKA_LISTENERS: INTERNAL://:9092,CONTROLLER://:9093,HOST://:19092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092,HOST://localhost:${KAFKA_PORT:-9092}
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
       # 단일 노드라 복제 계수는 전부 1이어야 한다
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
@@ -80,7 +88,7 @@ services:
       PGPASSWORD: verifylab
     user: postgres
     ports:
-      - "5433:5432"
+      - "${REPLICA_PORT:-0}:5432"
     command: >
       bash -c "
       if [ ! -s /var/lib/postgresql/data/PG_VERSION ]; then

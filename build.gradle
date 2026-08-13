@@ -39,5 +39,63 @@ subprojects {
             events 'passed', 'skipped', 'failed'
             showStandardStreams = false
         }
+
+        // compose.yaml 은 인프라의 호스트 포트를 고정하지 않는다 — 5432·9092·6379 는 개발 장비에
+        // 이미 떠 있는 경우가 흔해, 고정하면 그중 하나만 충돌해도 인프라 전체가 안 뜬다.
+        // 그래서 테스트를 띄우기 직전에 '지금 실제로 열려 있는 포트'를 도커에게 물어 넘긴다.
+        // 이게 없으면 "docker compose up -d && ./gradlew test" 한 줄이 깨진다.
+        doFirst {
+            publishedPorts(rootDir).each { name, port ->
+                if (System.getenv(name)) {
+                    return   // 사용자가 직접 지정했으면 그대로 존중한다
+                }
+                environment name, port
+                logger.lifecycle("${name} 자동 감지: ${port}")
+            }
+        }
+    }
+}
+
+/**
+ * 지금 떠 있는 compose 서비스의 호스트 포트를 환경변수 이름에 맞춰 돌려준다.
+ *
+ * <p>안 떠 있는 서비스는 그냥 빠진다 — 해당 케이스가 스스로 INCONCLUSIVE 를 남기므로
+ * 여기서 실패시키지 않는다(Kafka 브로커나 레플리카 없이 DB 케이스만 돌리는 경우가 정상 사용법이다).
+ */
+Map<String, String> publishedPorts(File projectDir) {
+    Map<String, Integer> services = [
+            DB_PORT      : ['postgres', 5432],
+            REPLICA_PORT : ['postgres-replica', 5432],
+            KAFKA_PORT   : ['kafka', 19092],     // 호스트용 리스너. 9092 는 도커 네트워크 내부용이다
+            REDIS_PORT   : ['redis', 6379],
+    ]
+    Map<String, String> found = [:]
+    services.each { envName, spec ->
+        String port = discoverPublishedPort(projectDir, spec[0] as String, spec[1] as int)
+        if (port != null) {
+            found[envName] = port
+        }
+    }
+    return found
+}
+
+/** {@code docker compose port <service> <containerPort>} 의 출력에서 호스트 포트만 뽑는다. */
+String discoverPublishedPort(File projectDir, String service, int containerPort) {
+    try {
+        Process process = new ProcessBuilder('docker', 'compose', 'port', service, containerPort as String)
+                .directory(projectDir)
+                .redirectErrorStream(true)
+                .start()
+        String output = process.inputStream.getText('UTF-8')
+        if (!process.waitFor(20, java.util.concurrent.TimeUnit.SECONDS) || process.exitValue() != 0) {
+            return null
+        }
+        // 출력 예: 0.0.0.0:32768  (IPv6 까지 여러 줄이 나올 수 있어 첫 유효 줄만 쓴다)
+        String line = output.readLines().find {
+            it.contains(':') && it.substring(it.lastIndexOf(':') + 1).trim().isInteger()
+        }
+        return line == null ? null : line.substring(line.lastIndexOf(':') + 1).trim()
+    } catch (Exception ignored) {
+        return null
     }
 }

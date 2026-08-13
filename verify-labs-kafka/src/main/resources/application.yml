@@ -14,8 +14,10 @@ verify:
   web:
     enabled: true
   kafka:
-    # compose.yaml 의 kafka 서비스. 다른 브로커를 쓰려면 KAFKA_BOOTSTRAP_SERVERS 로 덮어쓴다.
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    # compose.yaml 의 kafka 서비스. compose 는 호스트 포트를 고정하지 않으므로 KAFKA_PORT 를 탄다
+    # (`./gradlew test` 가 실제 배정 포트를 감지해 넣어 준다 — build.gradle 참고).
+    # 완전히 다른 브로커를 쓰려면 KAFKA_BOOTSTRAP_SERVERS 로 통째로 덮어쓴다.
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:${KAFKA_PORT:9092}}
 
 logging:
   level:

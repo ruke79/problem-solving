@@ -34,7 +34,7 @@ public class Brokers {
 
     private final String bootstrapServers;
 
-    public Brokers(@Value("${verify.kafka.bootstrap-servers:localhost:9092}") String bootstrapServers) {
+    public Brokers(@Value("${verify.kafka.bootstrap-servers:localhost:${KAFKA_PORT:9092}}") String bootstrapServers) {
         this.bootstrapServers = bootstrapServers;
     }
 
