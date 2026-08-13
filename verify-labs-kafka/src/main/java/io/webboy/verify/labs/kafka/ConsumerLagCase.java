@@ -105,7 +105,7 @@ public class ConsumerLagCase extends VerificationCase {
             ListOffsetsResult endOffsets = admin.listOffsets(Map.of(partition, OffsetSpec.latest()));
             long end = endOffsets.partitionResult(partition).get(15, TimeUnit.SECONDS).offset();
 
-            var committed = admin.listConsumerGroupOffsets(GROUP)
+            var committed = admin.listConsumerGroupOffsets(brokers.groupId(GROUP))
                     .partitionsToOffsetAndMetadata().get(15, TimeUnit.SECONDS);
             long current = committed.containsKey(partition) && committed.get(partition) != null
                     ? committed.get(partition).offset()

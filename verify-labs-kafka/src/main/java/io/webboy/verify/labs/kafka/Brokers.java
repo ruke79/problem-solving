@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -27,6 +28,9 @@ import java.util.concurrent.TimeUnit;
  */
 @Component
 public class Brokers {
+
+    /** 이 JVM 실행을 다른 실행과 구분하는 접미사 — {@link #groupId(String)} 참고. */
+    private static final String RUN_SUFFIX = "-" + UUID.randomUUID().toString().substring(0, 8);
 
     private final String bootstrapServers;
 
@@ -108,10 +112,25 @@ public class Brokers {
         return new KafkaProducer<>(props);
     }
 
+    /**
+     * 케이스가 쓰는 그룹 이름에 이 JVM 실행의 고유 접미사를 붙인다.
+     *
+     * <p>붙이지 않으면 <b>같은 브로커를 쓰는 다른 실행의 컨슈머와 같은 그룹에 섞인다.</b>
+     * 실제로 그렇게 해서 {@code KAFKA-05} 가 한 번 REFUTED 로 잘못 판정된 적이 있다 —
+     * 앞선 실행이 아직 살아 있는 상태에서 다음 실행이 시작되자, "컨슈머 1대일 때 모든 파티션을
+     * 혼자 받는다"는 단계에서 남의 컨슈머가 파티션 하나를 가져가 기대 2 / 실제 1 이 됐다.
+     * 답변이 틀린 것이 아니라 관측 환경이 오염된 것이므로, 아예 섞이지 않게 만든다.
+     *
+     * <p>AdminClient 로 같은 그룹을 조회하는 케이스({@code KAFKA-02})는 이 메서드로 실제 이름을 얻어야 한다.
+     */
+    public String groupId(String base) {
+        return base + RUN_SUFFIX;
+    }
+
     public KafkaConsumer<String, String> consumer(String groupId, Map<String, Object> overrides) {
         Properties props = new Properties();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId(groupId));
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
