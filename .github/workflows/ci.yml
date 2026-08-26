@@ -1,9 +1,12 @@
-# CI — 커밋마다 검증 스위트 전체(109건)를 실물 인프라 위에서 돌린다.
+# CI — 커밋마다 검증 스위트 전체(110건)를 실물 인프라 위에서 돌린다.
 #
 # 이 랩의 테스트는 곧 검증이다 — "빌드가 된다"가 아니라 "면접 답변의 명제가 이 환경에서도
 # 재현된다"를 확인한다. 그래서 인프라(PostgreSQL 16 + 레플리카 + Kafka + Redis)를 흉내 없이
 # compose 로 그대로 띄운다. GitHub 러너는 2코어라 스레드 타이밍 케이스(PERF-09* 등)가
 # INCONCLUSIVE 로 남을 수 있고, 그것은 실패가 아니라 정상 결과다(docs/02 §2).
+#
+# PERF-10C(원격 네트워크)는 여기서 항상 INCONCLUSIVE 다 — 실제 광역 링크가 있어야 단정하는
+# 케이스라, 그것을 재려면 remote-network.yml 을 쓴다(docs/02 §9-6).
 name: ci
 
 on:
@@ -32,7 +35,7 @@ jobs:
           ./scripts/random-ports.sh
           docker compose up -d --wait
 
-      - name: 검증 실행 (109건)
+      - name: 검증 실행 (110건)
         run: ./gradlew test
 
       # 판정 리포트가 이 워크플로의 산출물이다 — 실패해도 리포트는 남긴다

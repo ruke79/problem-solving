@@ -1,0 +1,84 @@
+# PERF-10C 원격 네트워크 검증 — 수동 실행(workflow_dispatch) 전용.
+#
+# 러너 ↔ EC2 구간이 진짜 광역 네트워크라는 점을 이용한다:
+#   1. perfbook 앱을 러너에서 bootJar 로 빌드해 EC2 에 올리고 기동한다 (1GB 인스턴스에서
+#      Gradle 빌드를 시키지 않기 위해 빌드는 러너가 한다)
+#   2. 케이스(PERF-10C)는 "러너에서" 돌린다 — VERIFY_REMOTE_BASE_URL 이 EC2 를 가리키므로
+#      측정 구간이 실제 WAN 이 된다. 인스턴스 안에서 돌리면 루프백이라 명제의 조건이 사라진다.
+#   3. 판정 리포트를 아티팩트로 남기고, 서버는 항상 내린다.
+#
+# 필요한 시크릿은 deploy-ec2.yml 과 같다(EC2_HOST / EC2_USER / EC2_SSH_KEY).
+# 추가 전제: 보안 그룹에서 서버 포트(기본 8080)의 인바운드가 열려 있어야 한다 — docs/11 §5.
+name: remote-network
+
+on:
+  workflow_dispatch:
+    inputs:
+      port:
+        description: '페이로드 서버 포트 (보안 그룹에서 인바운드가 열려 있어야 한다)'
+        default: '8080'
+
+jobs:
+  network-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: 페이로드 서버 빌드 (러너에서 — 1GB 인스턴스에 빌드를 시키지 않는다)
+        run: ./gradlew :verify-labs-perfbook:bootJar
+
+      - name: SSH 키 준비
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/ec2.pem
+          chmod 600 ~/.ssh/ec2.pem
+          ssh-keyscan -H "${{ secrets.EC2_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: 서버 배포·기동
+        run: |
+          scp -i ~/.ssh/ec2.pem verify-labs-perfbook/build/libs/verify-labs-perfbook-*.jar \
+            "${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:~/perfbook-payload.jar"
+          ssh -i ~/.ssh/ec2.pem "${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}" '
+            pkill -f perfbook-payload.jar || true
+            nohup java -Xmx256m -jar ~/perfbook-payload.jar --server.port=${{ inputs.port }} \
+              > ~/perfbook-payload.log 2>&1 &
+            for i in $(seq 1 60); do
+              curl -sf localhost:${{ inputs.port }}/payload/health >/dev/null && exit 0
+              sleep 2
+            done
+            echo "서버가 기동하지 않았다:"; tail -50 ~/perfbook-payload.log; exit 1
+          '
+
+      - name: 외부 도달 확인 (보안 그룹 검사)
+        run: |
+          if ! curl -sf --max-time 10 "http://${{ secrets.EC2_HOST }}:${{ inputs.port }}/payload/health"; then
+            echo "::error::러너에서 서버에 닿지 않는다 — 보안 그룹에서 ${{ inputs.port }} 인바운드를 열었는지 확인 (docs/11 §5)"
+            exit 1
+          fi
+
+      - name: PERF-10C 실행 (러너 → EC2, 실제 WAN 구간)
+        env:
+          VERIFY_REMOTE_BASE_URL: http://${{ secrets.EC2_HOST }}:${{ inputs.port }}
+        run: ./gradlew :verify-labs-perfbook:test --rerun-tasks -Dverify.only=PERF-10C
+
+      - name: 리포트 업로드
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: remote-network-report
+          path: verify-labs-perfbook/build/reports/verification-perfbook-selected.md
+          if-no-files-found: warn
+
+      - name: 서버 종료
+        if: always()
+        run: |
+          ssh -i ~/.ssh/ec2.pem "${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}" \
+            'pkill -f perfbook-payload.jar || true'

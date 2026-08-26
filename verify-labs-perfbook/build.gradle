@@ -12,6 +12,10 @@ dependencies {
     implementation 'com.zaxxer:HikariCP'
     implementation 'org.postgresql:postgresql'
 
+    // PERF-10C: 이 모듈의 앱이 곧 검증 대상 서버다 — /payload/full·/payload/trimmed 를 서빙하고,
+    // 케이스는 원격(EC2 등)에 배포된 이 앱을 HTTP 로 재서 "출력을 줄여라"를 검증한다.
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
     // PERF-11C: L2 캐시·쿼리 캐시는 흉내내지 않고 실제 Hibernate + JCache(Ehcache) 로 검증한다.
     // starter-data-jpa 를 안 쓰는 이유는 위와 같다 — 케이스가 SessionFactory 를 직접 만들어야
     // 캐시 설정 자체가 케이스 안에서 다 보이고, DB 부재 시 컨텍스트 기동도 막지 않는다.
