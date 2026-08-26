@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: interview-verify-lab-perfbook
+  # DataSource 자동 구성을 끈다 — PERF-11* 만 DB 를 쓰고, 그 커넥션은 케이스(Database 헬퍼)가
+  # 직접 만든다. 자동 구성에 맡기면 DB 가 없을 때 다른 장(9·12장 등)의 케이스까지 못 돌게 된다.
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+
+verify:
+  enabled: true
+  run-on-startup: false
+  report-path: build/reports/verification-perfbook.md
+  base-path: /verify
+  web:
+    enabled: true
+  db:
+    # compose.yaml 의 postgres 서비스. 호스트 포트를 고정하지 않으므로 DB_PORT 를 탄다
+    # (`./gradlew test` 가 실제 배정 포트를 감지해 넣어 준다 — 루트 build.gradle 참고).
+    url: ${DB_URL:jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/verifylab}
+    username: ${DB_USERNAME:verifylab}
+    password: ${DB_PASSWORD:verifylab}
+
+logging:
+  level:
+    root: info
+    # DB 가 없을 때 접속 실패 로그가 리포트를 덮는 것을 막는다 (케이스가 스스로 INCONCLUSIVE 를 남긴다)
+    com.zaxxer.hikari: error

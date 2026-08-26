@@ -54,6 +54,13 @@ Scott Oaks, *Java Performance: The Definitive Guide* (O'Reilly) 의 **장별 상
 이기 때문이다. 그래서 각 장 요약 끝에 붙인
 **"이 장을 우리 랩에 비춰 보면"** 표는 **자랑이 아니라 구멍 목록**에 가깝다.
 표에 "검증 케이스 **없음**" 이라고 적힌 줄이, **이 랩이 아직 실행해 보지 않은 주장**이다.
-그중 컨테이너 안에서도 충분히 측정할 수 있는 것들 — 예외 비용, TLAB,
-`StringTableSize`, 지연 스트림 — 은 **"못 하는 것"이 아니라 "안 한 것"** 이므로
-[`docs/02-정직한-고지.md`](../../docs/02-정직한-고지.md) 쪽에 속하는 항목이다.
+
+그 구멍 목록은 [`docs/02-정직한-고지.md`](../../docs/02-정직한-고지.md) §9 에서
+전수 분류됐고("못 하는 것 / JDK 가 없앤 것 / 별도 JVM / 안 한 것"),
+**"안 한 것" 대부분은 [`verify-labs-perfbook`](../../verify-labs-perfbook) 모듈의
+케이스 12건(`PERF-*`)이 됐다** — 이 책의 명제를 실제 실행으로 확인한다.
+
+```
+./gradlew :verify-labs-perfbook:test                        # 전부 (PERF-11* 은 PostgreSQL 필요)
+./gradlew :verify-labs-perfbook:test -Dverify.only=PERF-12  # 12장만
+```

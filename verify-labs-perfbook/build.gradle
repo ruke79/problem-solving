@@ -1,0 +1,16 @@
+plugins {
+    id 'org.springframework.boot'
+}
+
+dependencies {
+    implementation project(':verify-core')
+
+    // PERF-11* 는 PostgreSQL 16 실물에서 돈다 (compose.yaml). DB 가 없으면 케이스가 스스로
+    // INCONCLUSIVE 를 남긴다 — verify-labs-kafka 의 브로커 가용성 게이트와 같은 방식이다.
+    // starter-jdbc 를 쓰지 않는 이유: 자동 구성이 DB 부재 시 컨텍스트 기동을 막을 수 있고,
+    // 커넥션 획득 방식 자체가 검증 대상이라 케이스가 직접 들고 있어야 한다.
+    implementation 'com.zaxxer:HikariCP'
+    implementation 'org.postgresql:postgresql'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}

@@ -6,13 +6,15 @@
 그 명제를 코드로 재현해 `CONFIRMED` / `REFUTED` 판정을 남긴다.
 
 - Gradle **8.14.3** / Java **17** / Spring Boot **3.3.5**
-- 모듈 3개: `verify-core`(이식 가능한 하네스) + `verify-labs`(**88건**) + `verify-labs-kafka`(실물 브로커 **7건**)
-- **검증 케이스 95건 · 12개 분류** — db 25 / resilience 11 / spring·kafka·jvm·jpa·ai 각 7 /
-  security 5 / msa·concurrency·api 각 5 / observability 4
+- 모듈 4개: `verify-core`(이식 가능한 하네스) + `verify-labs`(**88건**) + `verify-labs-kafka`(실물 브로커 **7건**)
+  + `verify-labs-perfbook`(*Java Performance* 책 명제 **12건**)
+- **검증 케이스 107건 · 13개 분류** — db 25 / perfbook 12 / resilience 11 /
+  spring·kafka·jvm·jpa·ai 각 7 / security 5 / msa·concurrency·api 각 5 / observability 4
 - 인프라는 전부 실물이다(`compose.yaml`) — **PostgreSQL 16 + pgvector**, **스트리밍 레플리카**,
   **Kafka 3.9**, **Redis 7**. 흉내가 아니라 실제 옵티마이저·MVCC·복제 지연·파티션 재할당을 관측한다.
-- **실행 검증 완료** — 95건 전부 실행해 **REFUTED 0 / INCONCLUSIVE 0**
-  (Java 17.0.19 / Linux / 4코어). 케이스마다 독립된 테스트라 어느 것이 통과했는지 목록에서 바로 보인다.
+- **실행 검증 완료** — 107건 전부 실행해 **REFUTED 0 / INCONCLUSIVE 0**
+  (Java 17.0.19 / Linux / 4코어, perfbook 12건은 3연속 실행으로 확인).
+  케이스마다 독립된 테스트라 어느 것이 통과했는지 목록에서 바로 보인다.
 - 답변 원고 **Q1~Q200 전 범위**를 대조해 사실·표현 오류 **8건**을 확정했다 —
   적용 가능한 형태로 모은 것이 `docs/10-원고-수정-지시서.md`.
   원래 9건이었으나 Part 5 원문을 받아 대조하면서 **한 건을 스스로 철회**했다(`docs/05` §23).
@@ -75,6 +77,7 @@ cat verify-labs-kafka/build/reports/verification-kafka.md
 ./gradlew :verify-labs:test -Dverify.only=observability  # 분류 전체
 ./gradlew :verify-labs:test -Dverify.only=DB-14,SEC-03   # 여러 개
 ./gradlew :verify-labs-kafka:test -Dverify.only=KAFKA-05 # Kafka 모듈
+./gradlew :verify-labs-perfbook:test -Dverify.only=PERF-12  # 책 검증 모듈, 12장만
 ```
 
 출력은 이런 모양이다.
@@ -290,6 +293,24 @@ curl localhost:8080/verify/report.md                 # 마크다운 리포트
 | KAFKA-06 | 파티션 키를 고객 ID 로 잡았더니 특정 고객 때문에 한 파티션만 밀립니다. 어떻게 합니까? | 키가 편중되면 한 파티션이 압도적으로 많이 받는다 / 나머지 파티션은 놀거나 거의 비어 있다 |
 | KAFKA-07 | 스키마 진화에 어떻게 대응합니까? 전방 호환과 후방 호환의 차이는 무엇입니까? | 기본값이 있는 필드 추가는 후방 호환된다 — 컨슈머를 먼저 배포해도 안전 / 기본값이 있는 필드 추가는 전방 호환도 된다 — 옛 컨슈머는 새 필드를 무시한다 |
 
+**perfbook** — *Java Performance: The Definitive Guide* 의 명제
+(`verify-labs-perfbook` 모듈, `notes/java-performance/` 요약과 짝, PERF-11* 은 PostgreSQL 필요) — 12건
+
+| ID | 책의 명제 (장) | 확인하는 것 |
+|---|---|---|
+| PERF-04 | 핫 메서드는 컴파일된 뒤에야 빨라진다 (4장) | 같은 메서드가 워밍업 전후로 수십 배 차이 — 워밍업 없는 측정은 인터프리터를 잰 것 |
+| PERF-08 | 다이렉트 버퍼는 할당이 비싸니 재사용하라 (8장) | 재사용이 반복 할당보다 빠르다 / 다이렉트 할당이 힙 할당보다 느리다 |
+| PERF-09A | 거짓 공유 — 같은 캐시 라인이면 서로를 느리게 한다 (9장) | 인접 슬롯 vs 간격 8 슬롯, 4스레드 증가 경쟁 — 라인 분리가 1.6~2.0배 빠르다 |
+| PERF-09B | 암달의 법칙 — 직렬 구간이 상한을 정한다 (9장) | F=0.5 작업의 4스레드 실측 1.5배 — 이론 예측 1.6, 상한 2.0 을 넘지 않는다 |
+| PERF-10A | 직렬화를 쪼개면 참조 동일성이 깨진다 (10장) | 기본 직렬화는 == 유지, 쪼개 쓰면 복제본 둘 — equals 로는 안 보인다 |
+| PERF-10B | 압축 후 지연 해제가 가장 빠르다 (10장) | 압축이 크기를 절반 이하로 / 접근하지 않으면 해제 비용이 아예 없다 |
+| PERF-11A | 쓰기는 배치로 묶어라 (11장) | 같은 2,000행 — 건별 autocommit 대비 배치+단일 커밋이 36배 |
+| PERF-11B | prepared statement 는 재사용부터 이득이다 (11장) | pg_prepared_statements 로 관측 — 5회째에 서버측 prepare 가 생기고, 커넥션에 묶인다 |
+| PERF-12A | 버퍼 없는 I/O 는 바이트마다 시스템 콜 (12장) | 하부 read 호출 524,288회 → 65회 — 횟수는 결정적으로 센다 |
+| PERF-12B | 예외 비용의 실체는 스택 수집이고 깊이에 비례 (12장) | 깊은 스택 생성이 3배 이상 비싸다 / writableStackTrace=false 면 그 비용이 사라진다 |
+| PERF-12C | 스트림은 지연 순회한다 (12장) | findFirst 까지 filter 10회·map 1회 — 시간 대신 호출 횟수를 센다 |
+| PERF-A01 | 책의 플래그 권고 일부는 전제가 사라졌다 (부록 A) | 실행 중 JVM 에 직접 질의 — BiasedLocking 기본 꺼짐, AggressiveOpts 제거, StringTableSize 1009→65536 |
+
 **security** — 웹 보안 (Spring Security·Thymeleaf·PgJDBC 실물) — 5건
 
 | ID | 질문 | 확인하는 것 |
@@ -433,6 +454,10 @@ interview-verify-lab/
 │       └── LabApplication.java
 ├── verify-labs-kafka/                # 실물 브로커 케이스 7건 (별도 모듈)
 │   └── io/webboy/verify/labs/kafka/
+├── verify-labs-perfbook/             # Java Performance 책 명제 12건 (notes/java-performance 와 짝)
+│   └── io/webboy/verify/labs/perfbook/
+│       ├── ch04/ ch08/ ch09/ ch10/ ch11/ ch12/ appendixa/
+│       └── PerfBookLabApplication.java
 └── manuscripts/                      # 대조 대상인 답변 원고 자체 (Q1~Q200)
     ├── 원본/                          # 받은 그대로 (Part 3~6 은 PDF 추출 .txt)
     ├── 수정본/                        # 지적 8건·보강 9건 반영 — 사실관계 기준
