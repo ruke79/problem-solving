@@ -7,13 +7,13 @@
 
 - Gradle **8.14.3** / Java **17** / Spring Boot **3.3.5**
 - 모듈 4개: `verify-core`(이식 가능한 하네스) + `verify-labs`(**88건**) + `verify-labs-kafka`(실물 브로커 **7건**)
-  + `verify-labs-perfbook`(*Java Performance* 책 명제 **12건**)
-- **검증 케이스 107건 · 13개 분류** — db 25 / perfbook 12 / resilience 11 /
+  + `verify-labs-perfbook`(*Java Performance* 책 명제 **14건**)
+- **검증 케이스 109건 · 13개 분류** — db 25 / perfbook 14 / resilience 11 /
   spring·kafka·jvm·jpa·ai 각 7 / security 5 / msa·concurrency·api 각 5 / observability 4
 - 인프라는 전부 실물이다(`compose.yaml`) — **PostgreSQL 16 + pgvector**, **스트리밍 레플리카**,
   **Kafka 3.9**, **Redis 7**. 흉내가 아니라 실제 옵티마이저·MVCC·복제 지연·파티션 재할당을 관측한다.
-- **실행 검증 완료** — 107건 전부 실행해 **REFUTED 0 / INCONCLUSIVE 0**
-  (Java 17.0.19 / Linux / 4코어, perfbook 12건은 3연속 실행으로 확인).
+- **실행 검증 완료** — 109건 전부 실행해 **REFUTED 0 / INCONCLUSIVE 0**
+  (Java 17.0.19 / Linux / 4코어, perfbook 초판 12건은 3연속 실행으로 확인).
   케이스마다 독립된 테스트라 어느 것이 통과했는지 목록에서 바로 보인다.
 - 답변 원고 **Q1~Q200 전 범위**를 대조해 사실·표현 오류 **8건**을 확정했다 —
   적용 가능한 형태로 모은 것이 `docs/10-원고-수정-지시서.md`.
@@ -294,7 +294,7 @@ curl localhost:8080/verify/report.md                 # 마크다운 리포트
 | KAFKA-07 | 스키마 진화에 어떻게 대응합니까? 전방 호환과 후방 호환의 차이는 무엇입니까? | 기본값이 있는 필드 추가는 후방 호환된다 — 컨슈머를 먼저 배포해도 안전 / 기본값이 있는 필드 추가는 전방 호환도 된다 — 옛 컨슈머는 새 필드를 무시한다 |
 
 **perfbook** — *Java Performance: The Definitive Guide* 의 명제
-(`verify-labs-perfbook` 모듈, `notes/java-performance/` 요약과 짝, PERF-11* 은 PostgreSQL 필요) — 12건
+(`verify-labs-perfbook` 모듈, `notes/java-performance/` 요약과 짝, PERF-11* 은 PostgreSQL 필요) — 14건
 
 | ID | 책의 명제 (장) | 확인하는 것 |
 |---|---|---|
@@ -306,6 +306,8 @@ curl localhost:8080/verify/report.md                 # 마크다운 리포트
 | PERF-10B | 압축 후 지연 해제가 가장 빠르다 (10장) | 압축이 크기를 절반 이하로 / 접근하지 않으면 해제 비용이 아예 없다 |
 | PERF-11A | 쓰기는 배치로 묶어라 (11장) | 같은 2,000행 — 건별 autocommit 대비 배치+단일 커밋이 36배 |
 | PERF-11B | prepared statement 는 재사용부터 이득이다 (11장) | pg_prepared_statements 로 관측 — 5회째에 서버측 prepare 가 생기고, 커넥션에 묶인다 |
+| PERF-11C | L2 캐시는 쿼리 결과를 담지 않는다 (11장) | 실제 Hibernate+Ehcache — find 는 L2 를 타지만 JPQL 은 SQL 실행, 쿼리 캐시를 켜야 담긴다 |
+| PERF-11D | fetch size 는 메모리와 왕복의 트레이드오프 (11장) | 스레드 할당 바이트 — 기본값 4.3MB vs 커서 22KB, autocommit 켜면 조용히 무시 |
 | PERF-12A | 버퍼 없는 I/O 는 바이트마다 시스템 콜 (12장) | 하부 read 호출 524,288회 → 65회 — 횟수는 결정적으로 센다 |
 | PERF-12B | 예외 비용의 실체는 스택 수집이고 깊이에 비례 (12장) | 깊은 스택 생성이 3배 이상 비싸다 / writableStackTrace=false 면 그 비용이 사라진다 |
 | PERF-12C | 스트림은 지연 순회한다 (12장) | findFirst 까지 filter 10회·map 1회 — 시간 대신 호출 횟수를 센다 |

@@ -58,7 +58,7 @@ Scott Oaks, *Java Performance: The Definitive Guide* (O'Reilly) 의 **장별 상
 그 구멍 목록은 [`docs/02-정직한-고지.md`](../../docs/02-정직한-고지.md) §9 에서
 전수 분류됐고("못 하는 것 / JDK 가 없앤 것 / 별도 JVM / 안 한 것"),
 **"안 한 것" 대부분은 [`verify-labs-perfbook`](../../verify-labs-perfbook) 모듈의
-케이스 12건(`PERF-*`)이 됐다** — 이 책의 명제를 실제 실행으로 확인한다.
+케이스 14건(`PERF-*`)이 됐다** — 이 책의 명제를 실제 실행으로 확인한다.
 
 ```
 ./gradlew :verify-labs-perfbook:test                        # 전부 (PERF-11* 은 PostgreSQL 필요)
