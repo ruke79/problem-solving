@@ -1,0 +1,55 @@
+# CI — 커밋마다 검증 스위트 전체(109건)를 실물 인프라 위에서 돌린다.
+#
+# 이 랩의 테스트는 곧 검증이다 — "빌드가 된다"가 아니라 "면접 답변의 명제가 이 환경에서도
+# 재현된다"를 확인한다. 그래서 인프라(PostgreSQL 16 + 레플리카 + Kafka + Redis)를 흉내 없이
+# compose 로 그대로 띄운다. GitHub 러너는 2코어라 스레드 타이밍 케이스(PERF-09* 등)가
+# INCONCLUSIVE 로 남을 수 있고, 그것은 실패가 아니라 정상 결과다(docs/02 §2).
+name: ci
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      # 러너에서도 로컬과 같은 절차를 쓴다 — 빈 포트 선택 → compose 기동(헬스체크 대기)
+      - name: 인프라 기동
+        run: |
+          ./scripts/random-ports.sh
+          docker compose up -d --wait
+
+      - name: 검증 실행 (109건)
+        run: ./gradlew test
+
+      # 판정 리포트가 이 워크플로의 산출물이다 — 실패해도 리포트는 남긴다
+      - name: 리포트 수집
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verification-reports
+          path: |
+            verify-labs/build/reports/verification.md
+            verify-labs-kafka/build/reports/verification-kafka.md
+            verify-labs-perfbook/build/reports/verification-perfbook.md
+          if-no-files-found: warn
+
+      - name: 테스트 상세 (실패 시 진단용)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: '**/build/reports/tests/test/'

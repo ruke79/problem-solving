@@ -1,0 +1,65 @@
+# EC2 프리티어 배포 검증 — 수동 실행(workflow_dispatch) 전용.
+#
+# 하는 일: 저장소를 EC2 인스턴스에 rsync 로 올리고, 그 장비에서 검증 스위트를 돌린 뒤
+# 판정 리포트를 아티팩트로 회수한다. "다른 실물 장비(1 vCPU 버스터블)에서도 명제가
+# 재현되는가"를 보는 것이 목적이다 — 성능 수치가 아니라 판정을 가져온다.
+#
+# 필요한 저장소 시크릿 (Settings → Secrets and variables → Actions):
+#   EC2_HOST     인스턴스 퍼블릭 IP 또는 DNS
+#   EC2_USER     SSH 사용자 (Amazon Linux 2023 이면 ec2-user)
+#   EC2_SSH_KEY  키 페어의 프라이빗 키 PEM 전문
+#
+# 인스턴스는 scripts/ec2-setup.sh 로 한 번 초기 설정해 둔다. 상세: docs/11-CI-CD-와-EC2-프리티어.md
+name: deploy-ec2
+
+on:
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: '돌릴 스위트 — perfbook(1GB 프리티어용, PostgreSQL 만) / full(109건, RAM 2GB 이상 필요)'
+        type: choice
+        options: [perfbook, full]
+        default: perfbook
+
+jobs:
+  deploy-and-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: SSH 키 준비
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/ec2.pem
+          chmod 600 ~/.ssh/ec2.pem
+          ssh-keyscan -H "${{ secrets.EC2_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: 소스 동기화 (rsync)
+        run: |
+          rsync -az --delete \
+            --exclude '.git' --exclude '**/build' --exclude '.gradle' \
+            -e "ssh -i ~/.ssh/ec2.pem" \
+            ./ "${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:~/interview-verify-lab/"
+
+      - name: 원격 검증 실행 (${{ inputs.suite }})
+        run: |
+          ssh -i ~/.ssh/ec2.pem "${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}" \
+            "cd ~/interview-verify-lab && ./scripts/ec2-run-verify.sh '${{ inputs.suite }}'"
+
+      - name: 리포트 회수
+        if: always()
+        run: |
+          mkdir -p ec2-reports
+          scp -i ~/.ssh/ec2.pem \
+            "${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:~/interview-verify-lab/verify-labs*/build/reports/verification*.md" \
+            ec2-reports/ 2>/dev/null || true
+          ls -la ec2-reports/
+
+      - name: 리포트 아티팩트 업로드
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ec2-verification-reports
+          path: ec2-reports/
+          if-no-files-found: warn
