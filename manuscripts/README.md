@@ -89,7 +89,11 @@
 | 4 | JVM · GC · 메모리 | Q86~Q115 |
 | 5 | 모던 자바와 실무 | Q116~Q145 |
 
-상세는 [`java-면접/README.md`](java-면접/README.md). **일부 문항은 `verify-labs-perfbook` 의
+동일한 형식의 **`spring-면접/`(Q1~Q145)** 도 있다 — 코어·DI / AOP·트랜잭션 / Web·MVC /
+데이터 접근 / 운영·테스트·보안. **이쪽은 `SPRING-*`·`JPA-*`·`SEC-*`·`RES-*` 케이스가
+실행 근거인 문항이 25개 이상**이라, 세 세트 중 근거가 가장 두껍다.
+
+상세는 [`java-면접/README.md`](java-면접/README.md) · [`spring-면접/README.md`](spring-면접/README.md). **일부 문항은 `verify-labs-perfbook` 의
 `PERF-*` 케이스가 실행 근거이고, 반대로 검증하지 못한 문항도 그 README 에 명시했다** —
 면접에서 수치를 인용할 때 직접 측정한 것인지 구분하기 위해서다.
 
