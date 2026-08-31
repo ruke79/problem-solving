@@ -93,7 +93,11 @@
 데이터 접근 / 운영·테스트·보안. **이쪽은 `SPRING-*`·`JPA-*`·`SEC-*`·`RES-*` 케이스가
 실행 근거인 문항이 25개 이상**이라, 세 세트 중 근거가 가장 두껍다.
 
-상세는 [`java-면접/README.md`](java-면접/README.md) · [`spring-면접/README.md`](spring-면접/README.md). **일부 문항은 `verify-labs-perfbook` 의
+상세는 [`java-면접/README.md`](java-면접/README.md) · [`spring-면접/README.md`](spring-면접/README.md).
+
+**두 세트 모두 `필수-키노트.md` 가 있다** — 145문항을 **S급 18 / A급 27 / B급**으로 나누고,
+S급에는 **그대로 외울 수 있는 일본어 한 문장**을 붙였다. 시간이 부족할 때는 그것만 보면 된다.
+각 키노트 끝에 「면접 30분 전 최종 점검」으로 **함정 질문의 "아니오" 목록**을 정리해 뒀다. **일부 문항은 `verify-labs-perfbook` 의
 `PERF-*` 케이스가 실행 근거이고, 반대로 검증하지 못한 문항도 그 README 에 명시했다** —
 면접에서 수치를 인용할 때 직접 측정한 것인지 구분하기 위해서다.
 
