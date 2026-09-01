@@ -35,7 +35,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class Lesson03_Proxy {
 
     @Test
-    @DisplayName("3-1. 어드바이스가 붙은 빈은 프록시로 바뀌어 있다 (Q33)")
+    @DisplayName("3-1. 어드바이스가 붙은 빈은 프록시로 바뀌어 있다 (Q33·Q47)")
     void advisedBeansAreProxies() {
         try (var context = new AnnotationConfigApplicationContext(AopConfig.class)) {
             var service = context.getBean(OrderService.class);
