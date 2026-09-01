@@ -1,0 +1,17 @@
+// 실행되는 자바 튜토리얼. 프로덕션 코드가 아니라 **레슨이 곧 테스트**인 모듈이다.
+// Spring 을 쓰지 않으므로 의존은 JUnit 과 AssertJ 뿐이다 — 순수 자바만으로 확인할 수 있는
+// 것만 다루겠다는 방침이기도 하다(DB·브로커가 필요한 것은 verify-labs 쪽 소관).
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.assertj:assertj-core'
+}
+
+tasks.named('test') {
+    // 레슨은 '무엇을 확인했는지'가 콘솔에 보여야 교재 구실을 한다.
+    // 전체를 돌려도 100건 남짓이라 출력이 감당된다.
+    testLogging {
+        events 'passed', 'failed'
+        showStandardStreams = true
+        displayGranularity = 2
+    }
+}
