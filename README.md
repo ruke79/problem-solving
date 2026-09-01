@@ -27,10 +27,11 @@
   이 있다(일본어+한국어, 30~40초 분량). 후자는 `SPRING-*`·`JPA-*`·`SEC-*` 케이스가
   실행 근거인 문항이 25개 이상이다. 두 세트 모두 **`필수-키노트.md`** 로
   S급 18 / A급 27 등급을 매기고 **외울 일본어 한 문장**을 붙여 뒀다.
-- **`java-tutorial/`** — Java 145문항 중 **순수 자바만으로 판정 가능한 것**을 골라
-  레슨으로 옮긴 모듈. 읽는 교재가 아니라 **레슨 하나가 JUnit 테스트 하나**다
-  (**7레슨 · 54개, 전부 통과**). 환경에 좌우되는 값은 `observe` 로 출력만 하고
-  단정하지 않는다 — `expect`/`expectFlaky` 와 같은 원칙(`java-tutorial/README.md`).
+- **`java-tutorial/`** 과 **`spring-tutorial/`** — 두 면접 세트에서 **실행으로 판정 가능한
+  것**을 골라 레슨으로 옮긴 모듈. 읽는 교재가 아니라 **레슨 하나가 JUnit 테스트 하나**다
+  (자바 **7레슨 54개** + 스프링 **7레슨 52개**, 전부 통과). 환경에 좌우되는 값은 `observe` 로
+  출력만 하고 단정하지 않는다 — `expect`/`expectFlaky` 와 같은 원칙. 스프링 쪽은 DB 없이
+  트랜잭션 '경계'까지 검증한다(기록용 트랜잭션 매니저, `spring-tutorial/README.md` §2).
 - 만드는 과정에서 나온 문제와 해결(23건)은 `docs/05-개발-중-문제와-해결.md`
 
 ### 문서
@@ -91,6 +92,7 @@ cat verify-labs-kafka/build/reports/verification-kafka.md
 ./gradlew :verify-labs-kafka:test -Dverify.only=KAFKA-05 # Kafka 모듈
 ./gradlew :verify-labs-perfbook:test -Dverify.only=PERF-12  # 책 검증 모듈, 12장만
 ./gradlew :java-tutorial:test                            # 자바 튜토리얼 7레슨 54건
+./gradlew :spring-tutorial:test                          # 스프링 튜토리얼 7레슨 52건
 ./gradlew :java-tutorial:test --tests '*Lesson04*'       # 튜토리얼 레슨 하나만
 ```
 
@@ -479,6 +481,9 @@ interview-verify-lab/
 │   └── io/webboy/tutorial/
 │       ├── Lesson01_Equality ~ Lesson07_ModernJava
 │       └── Lesson.java               # fact / observe / lesson
+├── spring-tutorial/                  # 실행되는 스프링 튜토리얼 7레슨 52건 (spring-면접 과 짝)
+│   └── io/webboy/springtutorial/
+│       └── Lesson01_DiContainer ~ Lesson07_CacheEventAsync
 └── manuscripts/                      # 대조 대상인 답변 원고 자체 (Q1~Q200)
     ├── 원본/                          # 받은 그대로 (Part 3~6 은 PDF 추출 .txt)
     ├── 수정본/                        # 지적 8건·보강 9건 반영 — 사실관계 기준

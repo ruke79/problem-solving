@@ -1,0 +1,32 @@
+// 실행되는 스프링 튜토리얼. 프로덕션 코드가 아니라 **레슨이 곧 테스트**인 모듈이다.
+//
+// 인프라를 쓰지 않는다 — DB·브로커·Redis 가 필요한 명제는 여기 없다(verify-labs 소관).
+// 그래서 starter 도 web·aop·cache·validation 넷뿐이고, compose 없이 바로 돈다.
+// 트랜잭션 레슨은 DataSource 대신 '기록하는 트랜잭션 매니저'를 쓴다 — 이유는 README §2 에 적었다.
+dependencies {
+    testImplementation 'org.springframework.boot:spring-boot-starter-web'
+    testImplementation 'org.springframework.boot:spring-boot-starter-aop'
+    testImplementation 'org.springframework.boot:spring-boot-starter-cache'
+    testImplementation 'org.springframework.boot:spring-boot-starter-validation'
+    // 트랜잭션 '경계' 레슨용. DB 스타터는 일부러 안 쓴다 — spring-tx 의 전파·롤백 규칙 로직만 있으면 된다
+    testImplementation 'org.springframework:spring-tx'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+// Spring 6.1 부터 @RequestParam·@PathVariable 의 이름 추론이 -parameters 플래그를 요구한다
+// (바이트코드 파싱 폴백이 제거됐다). Boot 플러그인이 있으면 자동으로 붙지만 이 모듈엔 없어서
+// 직접 붙인다 — 빼면 레슨 5 가 "Ensure that the compiler uses the '-parameters' flag" 로 전멸한다.
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs << '-parameters'
+}
+
+tasks.named('test') {
+    // 레슨은 '무엇을 확인했는지'가 콘솔에 보여야 교재 구실을 한다.
+    testLogging {
+        events 'passed', 'failed'
+        showStandardStreams = true
+        displayGranularity = 2
+    }
+    // 스프링 기동 로그는 레슨 출력을 덮어버린다. 경고 이상만 남긴다.
+    systemProperty 'logging.level.root', 'WARN'
+}
