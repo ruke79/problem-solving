@@ -32,6 +32,27 @@
 원고 저자가 "굵은 부분이 다른 지원자와 차이를 만드는 지점"이라고 명시한 의도적 강조라서,
 지적 ⑤ 의 대상이 아니었고 회화체에서도 건드리지 않았다.
 
+## Part 별 파일
+
+세 벌이 같은 Q 번호를 공유한다. **인용·확인은 `수정본/`, 연습은 `회화체/`** 를 본다
+(`원본/` 은 무엇이 바뀌었는지 대조할 때만).
+
+| Part | 문항 | 원본 | 수정본 | 회화체 |
+|---|---|---|---|---|
+| 1 | Q1~Q15 | [Part1.md](원본/Part1.md) | [Part1.md](수정본/Part1.md) | [Part1.md](회화체/Part1.md) |
+| 2 | Q16~Q30 | [Part2.md](원본/Part2.md) | [Part2.md](수정본/Part2.md) | [Part2.md](회화체/Part2.md) |
+| 3 | Q31~Q45 | [Part3.txt](원본/PDF-추출-Part3-6/Part3.txt) (PDF 추출) | [Part3.md](수정본/Part3.md) | [Part3.md](회화체/Part3.md) |
+| 4 | Q46~Q60 | [Part4.txt](원본/PDF-추출-Part3-6/Part4.txt) (PDF 추출) | [Part4.md](수정본/Part4.md) | [Part4.md](회화체/Part4.md) |
+| 5 | Q61~Q75 | [Part5.txt](원본/PDF-추출-Part3-6/Part5.txt) (PDF 추출) | [Part5.md](수정본/Part5.md) | [Part5.md](회화체/Part5.md) |
+| 6 | Q76~Q90 | [Part6.txt](원본/PDF-추출-Part3-6/Part6.txt) (PDF 추출) | [Part6.md](수정본/Part6.md) | [Part6.md](회화체/Part6.md) |
+| 7 | Q91~Q115 | [Part7.md](원본/Part7.md) | [Part7.md](수정본/Part7.md) | [Part7.md](회화체/Part7.md) |
+| 8 | Q116~Q135 | [Part8.md](원본/Part8.md) | [Part8.md](수정본/Part8.md) | [Part8.md](회화체/Part8.md) |
+| 9 | Q136~Q151 | [Part9.md](원본/Part9.md) | [Part9.md](수정본/Part9.md) | [Part9.md](회화체/Part9.md) |
+| 10 | Q152~Q169 | [Part10.md](원본/Part10.md) | [Part10.md](수정본/Part10.md) | [Part10.md](회화체/Part10.md) |
+| 11 | Q170~Q200 | [Part11.md](원본/Part11.md) | [Part11.md](수정본/Part11.md) | [Part11.md](회화체/Part11.md) |
+
+수정본에 무엇이 반영됐는지는 [`수정본/00-적용-내역.md`](수정본/00-적용-내역.md).
+
 ## 원본에 대한 고지
 
 - **Part 1·2·7·8·9·10·11** — markdown 으로 받았다. `원본/PartN.md` 가 받은 파일 그대로다.
