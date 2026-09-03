@@ -15,43 +15,94 @@
 - **실행 검증 완료** — 110건 전부 실행해 **REFUTED 0 / INCONCLUSIVE 1**
   (Java 17.0.19 / Linux / 4코어, perfbook 초판 12건은 3연속 실행으로 확인).
   **남은 1건은 `PERF-10C`(원격 네트워크)이고, 로컬·CI 에서 INCONCLUSIVE 인 것이 설계다** —
-  실제 광역 링크가 있어야 단정할 수 있어 EC2 배포본을 대상으로만 CONFIRMED 가 된다(`docs/11` §5).
+  실제 광역 링크가 있어야 단정할 수 있어 EC2 배포본을 대상으로만 CONFIRMED 가 된다([`docs/11`](docs/11-CI-CD-와-EC2-프리티어.md) §5).
   케이스마다 독립된 테스트라 어느 것이 통과했는지 목록에서 바로 보인다.
 - 답변 원고 **Q1~Q200 전 범위**를 대조해 사실·표현 오류 **8건**을 확정했다 —
-  적용 가능한 형태로 모은 것이 `docs/10-원고-수정-지시서.md`.
-  원래 9건이었으나 Part 5 원문을 받아 대조하면서 **한 건을 스스로 철회**했다(`docs/05` §23).
+  적용 가능한 형태로 모은 것이 [`docs/10-원고-수정-지시서.md`](docs/10-원고-수정-지시서.md).
+  원래 9건이었으나 Part 5 원문을 받아 대조하면서 **한 건을 스스로 철회**했다([`docs/05`](docs/05-개발-중-문제와-해결.md) §23).
 - **원고 자체가 저장소 안에 있다** — `manuscripts/` 에 세 벌. `원본/`(받은 그대로) ·
   `수정본/`(지적 8건·보강 9건을 실제로 반영, **사실관계 기준**) ·
-  `회화체/`(수정본을 말투만 바꾼 판, **Q1~Q200 전부 완료**). 세 벌 비교표는 `manuscripts/README.md`.
-  별도로 **`manuscripts/java-면접/`(Java 145문항)** 과 **`manuscripts/spring-면접/`(Spring Boot 145문항)**
+  `회화체/`(수정본을 말투만 바꾼 판, **Q1~Q200 전부 완료**). 세 벌 비교표는 [`manuscripts/README.md`](manuscripts/README.md).
+  별도로 **[`manuscripts/java-면접/`](manuscripts/java-면접/)(Java 145문항)** 과 **[`manuscripts/spring-면접/`](manuscripts/spring-면접/)(Spring Boot 145문항)**
   이 있다(일본어+한국어, 30~40초 분량). 후자는 `SPRING-*`·`JPA-*`·`SEC-*` 케이스가
-  실행 근거인 문항이 25개 이상이다. 두 세트 모두 **`필수-키노트.md`** 로
+  실행 근거인 문항이 25개 이상이다. 두 세트 모두 **필수-키노트**([Java](manuscripts/java-면접/필수-키노트.md) · [Spring](manuscripts/spring-면접/필수-키노트.md))로
   S급 18 / A급 27 등급을 매기고 **외울 일본어 한 문장**을 붙여 뒀다.
-- **`java-tutorial/`** 과 **`spring-tutorial/`** — 두 면접 세트에서 **실행으로 판정 가능한
+- **[`java-tutorial/`](java-tutorial/README.md)** 과 **[`spring-tutorial/`](spring-tutorial/README.md)** — 두 면접 세트에서 **실행으로 판정 가능한
   것**을 골라 레슨으로 옮긴 모듈. 읽는 교재가 아니라 **레슨 하나가 JUnit 테스트 하나**다
   (자바 **7레슨 54개** + 스프링 **7레슨 52개**, 전부 통과). 환경에 좌우되는 값은 `observe` 로
   출력만 하고 단정하지 않는다 — `expect`/`expectFlaky` 와 같은 원칙. 스프링 쪽은 DB 없이
-  트랜잭션 '경계'까지 검증한다(기록용 트랜잭션 매니저, `spring-tutorial/README.md` §2).
-- 만드는 과정에서 나온 문제와 해결(23건)은 `docs/05-개발-중-문제와-해결.md`
+  트랜잭션 '경계'까지 검증한다(기록용 트랜잭션 매니저, [`spring-tutorial/README.md`](spring-tutorial/README.md) §2).
+- 만드는 과정에서 나온 문제와 해결(23건)은 [`docs/05-개발-중-문제와-해결.md`](docs/05-개발-중-문제와-해결.md)
+- **외부 기준 한 권을 요약해 함께 뒀다** — [`notes/java-performance/`](notes/java-performance/README.md) 에
+  *Java Performance: The Definitive Guide* 의 **장별 상세 요약 13개**(2~12장 + 부록 A, 7,600여 줄).
+  각 장 끝의 「이 장을 우리 랩에 비춰 보면」 표가 구멍 목록이고, 그게 `PERF-*` 15건이 됐다.
 
 ### 문서
 
+전부 링크로 연결해 두었다. **`docs/` 는 이 랩 자체의 기록**, **`notes/` 는 외부 기준(책) 요약**,
+**`manuscripts/` 는 검증 대상인 원고**, 그리고 **모듈 README** 는 각 모듈의 사용법이다.
+
+#### 랩의 기록 — [`docs/`](docs/)
+
 | 파일 | 내용 |
 |---|---|
-| `docs/00-인계-노트.md` | 이 랩이 만들어진 경위와 인계 사항 (원본 그대로) |
-| `docs/01-질문-검증-매핑.md` | Q31~Q115 를 A/B/C 로 분류한 표 (해소된 항목은 취소선) |
-| `docs/02-정직한-고지.md` | 이 랩이 증명하지 **못하는** 것 |
-| `docs/03-새-케이스-추가-가이드.md` | 케이스 추가 방법 |
-| `docs/04-답변-원고-검토-지적사항.md` | 답변 원고에서 발견한 사실·표현 오류 |
-| `docs/05-개발-중-문제와-해결.md` | 빌드·이관·측정 하네스에서 나온 문제 23건과 해결 |
-| `docs/06-원고-수정본-Part5.md` | Q61~Q75 원고 대조 결과와 확정된 수정문 (Q64 Base62 오기 포함) |
-| `docs/07-원고-수정본-Part6.md` | Q76~Q90 원고 대조 결과와 확정된 수정문 (Q77·Q78·Q87) |
-| `docs/08-PostgreSQL-로-늘어난-검증-범위.md` | PostgreSQL·Kafka 로 새로 검증 가능해진 질문과 아직 안 되는 것 |
-| `docs/09-테스트-누락-점검-Q1-Q200.md` | 전 범위 원고 대조 — 만들 수 있는데 없는 케이스 17건 |
-| `docs/10-원고-수정-지시서.md` | 확정된 원고 수정 8건을 적용 가능한 형태로 정리 (철회 1건 포함) |
-| `docs/11-CI-CD-와-EC2-프리티어.md` | GitHub Actions CI · EC2 프리티어 배포 검증 절차와 §9-1 과의 관계 |
-| `docs/12-일본어-동사-전수-조사.md` | 원고 일본어 전수 조사 (동사 539종 + 조사·경어) — 수정 12곳과 **일부러 두지 않은 것 140곳**의 근거 |
-| `manuscripts/README.md` | 원고 세 벌(원본·수정본·회화체) 비교표와 PDF 추출 고지 |
+| [`00-인계-노트.md`](docs/00-인계-노트.md) | 이 랩이 만들어진 경위와 인계 사항. **§8 이 이 저장소의 원칙(정직성 우선)** |
+| [`01-질문-검증-매핑.md`](docs/01-질문-검증-매핑.md) | Q31~Q115 를 A/B/C 로 분류한 표 (해소된 항목은 취소선) |
+| [`02-정직한-고지.md`](docs/02-정직한-고지.md) | **이 랩이 증명하지 못하는 것.** §1-2 측정 규칙 · §9 구멍 전수 분류 |
+| [`03-새-케이스-추가-가이드.md`](docs/03-새-케이스-추가-가이드.md) | 케이스 추가 방법 |
+| [`04-답변-원고-검토-지적사항.md`](docs/04-답변-원고-검토-지적사항.md) | 답변 원고에서 발견한 사실·표현 오류 |
+| [`05-개발-중-문제와-해결.md`](docs/05-개발-중-문제와-해결.md) | 빌드·전환·측정 하네스에서 나온 문제 23건과 해결 |
+| [`06-원고-수정본-Part5.md`](docs/06-원고-수정본-Part5.md) | Q61~Q75 원고 대조 결과와 확정된 수정문 (Q64 Base62 오기 포함) |
+| [`07-원고-수정본-Part6.md`](docs/07-원고-수정본-Part6.md) | Q76~Q90 원고 대조 결과와 확정된 수정문 (Q77·Q78·Q87) |
+| [`08-PostgreSQL-로-늘어난-검증-범위.md`](docs/08-PostgreSQL-로-늘어난-검증-범위.md) | PostgreSQL·Kafka 로 새로 검증 가능해진 질문과 아직 안 되는 것 |
+| [`09-테스트-누락-점검-Q1-Q200.md`](docs/09-테스트-누락-점검-Q1-Q200.md) | 전 범위 원고 대조 — 만들 수 있는데 없는 케이스 17건 |
+| [`10-원고-수정-지시서.md`](docs/10-원고-수정-지시서.md) | 확정된 원고 수정 8건을 적용 가능한 형태로 정리 (철회 1건 포함) |
+| [`11-CI-CD-와-EC2-프리티어.md`](docs/11-CI-CD-와-EC2-프리티어.md) | GitHub Actions CI · EC2 프리티어 배포 절차와 §9-1 과의 관계 |
+| [`12-일본어-동사-전수-조사.md`](docs/12-일본어-동사-전수-조사.md) | 원고 일본어 전수 조사 (동사 539종 + 조사·경어) — 수정 12곳과 **일부러 두지 않은 것 140곳**의 근거 |
+
+#### 외부 기준 요약 — [`notes/java-performance/`](notes/java-performance/)
+
+Scott Oaks, *Java Performance: The Definitive Guide* 의 **장별 상세 요약 13개 파일**
+([목차와 고지 3건](notes/java-performance/README.md)). 각 장 끝의
+**「이 장을 우리 랩에 비춰 보면」** 표가 구멍 목록이고, 그것이
+[`verify-labs-perfbook`](verify-labs-perfbook/) 의 `PERF-*` 15건이 됐다.
+
+| 파일 | 장 | 핵심 |
+|---|---|---|
+| [`02-성능-테스트-접근법.md`](notes/java-performance/02-성능-테스트-접근법.md) | 2 | 마이크로벤치마크의 함정, **평균이 아니라 90퍼센타일**, t-검정과 p-값 |
+| [`03-성능-도구-상자.md`](notes/java-performance/03-성능-도구-상자.md) | 3 | `jcmd`/`jstat`/`jstack`, **샘플링 vs 계측 프로파일러**, 세이프포인트 편향, JFR |
+| [`04-JIT-컴파일러.md`](notes/java-performance/04-JIT-컴파일러.md) | 4 | 계층형 컴파일, **코드 캐시**, `CompileThreshold`, OSR, 인라이닝, 이스케이프 분석 |
+| [`05-GC-입문.md`](notes/java-performance/05-GC-입문.md) | 5 | 세대 구분, 마이너/풀 GC, 네 수집기의 성격, `MaxGCPauseMillis` vs `GCTimeRatio` |
+| [`06-GC-알고리즘.md`](notes/java-performance/06-GC-알고리즘.md) | 6 | **CMS 동시 모드 실패/승격 실패**, G1 리전·혼합 GC·거대 객체, 테뉴어링, TLAB |
+| [`07-힙-메모리-모범-사례.md`](notes/java-performance/07-힙-메모리-모범-사례.md) | 7 | **retained/shallow/deep size**, OOM 네 원인, 소프트/위크/팬텀 레퍼런스, 문자열 인터닝 |
+| [`08-네이티브-메모리-모범-사례.md`](notes/java-performance/08-네이티브-메모리-모범-사례.md) | 8 | 풋프린트(예약 vs 커밋), **NMT**, 라지 페이지, **압축 oop 과 32GB 경계** |
+| [`09-스레딩과-동기화.md`](notes/java-performance/09-스레딩과-동기화.md) | 9 | 스레드 풀 크기, 작업 훔치기, **암달의 법칙**, CAS vs `LongAdder`, 거짓 공유 |
+| [`10-Java-EE-성능.md`](notes/java-performance/10-Java-EE-성능.md) | 10 | 출력 다듬기·압축, HTTP 세션 복제, 파서 팩토리 조회 비용, 직렬화와 지연 압축 해제 |
+| [`11-데이터베이스-성능.md`](notes/java-performance/11-데이터베이스-성능.md) | 11 | prepared statement 풀, 커넥션 풀, 배치, **JPA L1/L2 캐시와 `JOIN FETCH` 의 L2 우회** |
+| [`12-Java-SE-API-팁.md`](notes/java-performance/12-Java-SE-API-팁.md) | 12 | 버퍼드 I/O, JNI 배열 피닝, **예외 비용(381ms → 10,673ms)**, **지연 스트림(0.359s vs 48.706s)** |
+| [`A-튜닝-플래그-요약.md`](notes/java-performance/A-튜닝-플래그-요약.md) | 부록 A | 10개 표 전체. **"항상 켜라"는 전부 관측용**이고 성능 플래그에는 전부 조건이 붙는다 |
+
+> **1장(Introduction)은 없다.** 업로드 자료에 포함되지 않아 읽지 않았고, 읽지 않은 것은
+> 요약하지 않았다. 그 밖의 고지 2건(PDF 추출 한계 · JDK 7/8 시절 책)은
+> [`notes/java-performance/README.md`](notes/java-performance/README.md) 에 있다.
+
+#### 검증 대상 원고 — [`manuscripts/`](manuscripts/)
+
+| 경로 | 내용 |
+|---|---|
+| [`manuscripts/README.md`](manuscripts/README.md) | 원고 세 벌(원본·수정본·회화체) 비교표와 PDF 추출 고지 |
+| [`원본/`](manuscripts/원본/) · [`수정본/`](manuscripts/수정본/) · [`회화체/`](manuscripts/회화체/) | Q1~Q200 세 벌. 수정본의 [적용 내역](manuscripts/수정본/00-적용-내역.md) |
+| [`java-면접/`](manuscripts/java-면접/) | Java 145문항 — [README](manuscripts/java-면접/README.md) · [**필수-키노트**](manuscripts/java-면접/필수-키노트.md) · [Part1](manuscripts/java-면접/Part1.md) [2](manuscripts/java-면접/Part2.md) [3](manuscripts/java-면접/Part3.md) [4](manuscripts/java-면접/Part4.md) [5](manuscripts/java-면접/Part5.md) |
+| [`spring-면접/`](manuscripts/spring-면접/) | Spring Boot 145문항 — [README](manuscripts/spring-면접/README.md) · [**필수-키노트**](manuscripts/spring-면접/필수-키노트.md) · [Part1](manuscripts/spring-면접/Part1.md) [2](manuscripts/spring-면접/Part2.md) [3](manuscripts/spring-면접/Part3.md) [4](manuscripts/spring-면접/Part4.md) [5](manuscripts/spring-면접/Part5.md) |
+
+두 키노트의 `▶레슨 n-m` 표기가 아래 튜토리얼 모듈의 레슨 번호다.
+
+#### 모듈 README
+
+| 모듈 | 내용 |
+|---|---|
+| [`java-tutorial/README.md`](java-tutorial/README.md) | 실행되는 자바 튜토리얼 7레슨 54건 — 레슨 목록·`observe` 규칙·정직한 고지 |
+| [`spring-tutorial/README.md`](spring-tutorial/README.md) | 실행되는 스프링 튜토리얼 7레슨 52건 — **§2 트랜잭션 레슨에 DB 가 없는 이유**, §4 만들다 밟은 함정 6건 |
 
 ---
 
