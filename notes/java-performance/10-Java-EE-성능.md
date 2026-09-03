@@ -1,5 +1,8 @@
 # 10장. Java EE 성능 (Java Enterprise Edition Performance)
 
+> ⚠️ **JDK 17 기준 차이** — **`javax.*` → `jakarta.*`**(Jakarta EE 9). 원리(출력 줄이기·세션 복제 비용·지연 압축 해제)는 유효하지만 **예제의 JSP/EJB 전제가 현재 실무와 멀다.** 이 랩은 이 장을 Spring Boot 로 옮겨 검증한다(`PERF-10A~C`).
+> 전체 대조는 [`00-JDK-17-차이.md`](00-JDK-17-차이.md) 참고.
+
 > Java EE 6·7 기준. JSP·서블릿·EJB 3.0 세션 빈을 다룬다. **JPA 엔티티는 Java EE 고유 기술이
 > 아니므로 11장에서 따로 다룬다.**
 

@@ -1,5 +1,8 @@
 # 부록 A. 튜닝 플래그 요약 (Summary of Tuning Flags)
 
+> ⚠️ **JDK 17 기준 차이** — **이 표의 플래그 중 여럿이 JDK 17 에서 아예 인식되지 않는다**(`UseConcMarkSweepGC`·`UseParNewGC`·`UseParallelOldGC`·`PermSize`·`UnlockCommercialFeatures` 등). **표를 그대로 믿지 말고 `-XX:+PrintFlagsFinal` 로 확인한 뒤 쓸 것.**
+> 전체 대조는 [`00-JDK-17-차이.md`](00-JDK-17-차이.md) 참고.
+
 > 이 부록은 책 전체에서 나온 플래그를 **10개 표**로 다시 모은 것이다.
 > 각 항목은 `무엇을 하는가 / 언제 쓰는가 / 어느 장에서 설명했는가` 세 칸으로 되어 있다.
 >

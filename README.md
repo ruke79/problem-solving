@@ -82,8 +82,16 @@ Scott Oaks, *Java Performance: The Definitive Guide* 의 **장별 상세 요약 
 | [`12-Java-SE-API-팁.md`](notes/java-performance/12-Java-SE-API-팁.md) | 12 | 버퍼드 I/O, JNI 배열 피닝, **예외 비용(381ms → 10,673ms)**, **지연 스트림(0.359s vs 48.706s)** |
 | [`A-튜닝-플래그-요약.md`](notes/java-performance/A-튜닝-플래그-요약.md) | 부록 A | 10개 표 전체. **"항상 켜라"는 전부 관측용**이고 성능 플래그에는 전부 조건이 붙는다 |
 
+| [`00-JDK-17-차이.md`](notes/java-performance/00-JDK-17-차이.md) | — | **책(JDK 7/8)과 JDK 17 의 차이를 장별로 대조** — 아래 참고 |
+
+> **이 책은 JDK 7/8 시절에 쓰였다.** CMS 삭제 · 기본 수집기 G1 · Compact Strings ·
+> `invokedynamic` 문자열 연결처럼 **지금과 어긋나는 것이 많아**, 그 차이를 장별로 대조한
+> [**`00-JDK-17-차이.md`**](notes/java-performance/00-JDK-17-차이.md) 를 따로 뒀다.
+> JDK 17.0.19 에서 **실제로 실행해 확인한 것**(책이 권하는 GC 옵션 5개가 기동 자체를 실패시킨다 등)과
+> **문서만 보고 적은 것**을 갈라 놨고, 각 장 파일 머리에도 그 장의 차이를 배너로 달았다.
+>
 > **1장(Introduction)은 없다.** 업로드 자료에 포함되지 않아 읽지 않았고, 읽지 않은 것은
-> 요약하지 않았다. 그 밖의 고지 2건(PDF 추출 한계 · JDK 7/8 시절 책)은
+> 요약하지 않았다. 그 밖의 고지(PDF 추출 한계)는
 > [`notes/java-performance/README.md`](notes/java-performance/README.md) 에 있다.
 
 #### 검증 대상 원고 — [`manuscripts/`](manuscripts/)
