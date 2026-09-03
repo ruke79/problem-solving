@@ -94,6 +94,12 @@ Scott Oaks, *Java Performance: The Definitive Guide* 의 **장별 상세 요약 
 > 요약하지 않았다. 그 밖의 고지(PDF 추출 한계)는
 > [`notes/java-performance/README.md`](notes/java-performance/README.md) 에 있다.
 
+**후속 책 검토 — [`notes/optimizing-java/`](notes/optimizing-java/00-검토-2018년-책과-현재.md)**
+위 책이 낡아 ***Optimizing Java*(Evans·Gough·Newland, 2018) 로 갈아타기 전에 먼저 훑은 검토서**다.
+2~14장 13개 장을 읽고 **지금과 어긋나는 것을 장별로** 정리했다 — 8장의 "필수 GC 플래그" 5개 중
+**3개가 JDK 17 에서 기동 자체를 실패시키고**, 13장이 소개하는 hprof 는 제거됐으며,
+**ZGC 는 0회 언급**(책이 나올 때 아직 없었다)이다. 요약 착수 순서 제안도 함께 넣었다.
+
 #### 검증 대상 원고 — [`manuscripts/`](manuscripts/)
 
 | 경로 | 내용 |
