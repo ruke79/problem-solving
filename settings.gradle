@@ -10,5 +10,7 @@ include 'verify-core'
 include 'verify-labs'
 include 'verify-labs-kafka'
 include 'verify-labs-perfbook'
+include 'verify-labs-cloudnative'   // JDK 25 툴체인 — Optimizing Cloud Native Java 2판 명제
+include 'verify-labs-jmh'           // JMH 벤치마크 — 벽시계로 확정 못 하는 "차이가 없다" 명제 전용
 include 'java-tutorial'
 include 'spring-tutorial'

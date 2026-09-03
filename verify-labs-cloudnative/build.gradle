@@ -1,0 +1,44 @@
+// *Optimizing Cloud Native Java* 2판(2024) 의 명제를 **JDK 25** 에서 실행해 검증하는 모듈.
+//
+// 루트 build.gradle 은 모든 서브프로젝트에 Java 17 툴체인을 준다. 2판의 기준(JDK 21)과
+// "지금"(JDK 25) 의 차이가 이 모듈의 검증 대상이므로 이 모듈만 25 로 덮어쓴다 — 툴체인
+// 자동 감지(설치된 JDK) 또는 foojay 리졸버(settings.gradle)가 25 를 찾아 준다.
+//
+// Spring 을 쓰지 않는다. 이유 둘 —
+//  (1) 검증 대상 API(ScopedValue 정식, FFM, AOT 캐시 플래그)가 25 에서만 컴파일되므로 클래스 파일
+//      버전이 69 가 되는데, 이 저장소의 Spring Boot 3.3.5(프레임워크 6.1)는 공식 지원 범위가
+//      JDK 23 까지다(문서 기준 — 시험하지 않고 피했다).
+//  (2) 케이스는 JDK 자체와 Micrometer 만 있으면 된다.
+// 그래서 verify-core 의 하네스(VerificationCase·Evidence·VerificationRegistry·CaseFilter·
+// VerificationReport)만 직접 쓰고, 레지스트리는 테스트에서 손으로 만든다(CloudNativeCases.all()).
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+dependencies {
+    implementation project(':verify-core')
+
+    // 10·11장 — 메트릭 파사드 명제(퍼센타일 재집계 불가, 카운터 단조, MeterFilter)를 실물 라이브러리로.
+    // 버전은 루트의 Spring Boot BOM(3.3.5)이 정한다 — 케이스가 실제 해석된 버전을 fact 로 남긴다.
+    implementation 'io.micrometer:micrometer-core'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.assertj:assertj-core'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    // CN-15A 는 일부러 sun.misc.Unsafe 의 폐기 메서드를, CN-15B 는 제한된(restricted) FFM 메서드를
+    // 부른다 — 그것이 검증 대상이다. 경고를 오류로 올리지 않고, 경고 자체는 빌드 로그에 남긴다.
+    options.compilerArgs += ['-Xlint:removal', '-Xlint:restricted']
+    options.encoding = 'UTF-8'
+}
+
+tasks.named('test') {
+    // 자식 JVM 을 띄우는 케이스(에르고노믹·GC 선택·AOT 캐시·피닝)가 있어 한 케이스가 수 초 걸린다.
+    // 리포트: build/reports/verification-cloudnative.md
+    testLogging {
+        events 'passed', 'skipped', 'failed'
+    }
+}

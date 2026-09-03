@@ -25,3 +25,9 @@ dependencies {
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
+
+tasks.named('test') {
+    // PERF-11E(Compact Strings)는 String 의 byte[] value / coder 필드를 직접 읽는다 — 그것이 검증 대상이라
+    // 리플렉션을 피할 수 없다. 이 opens 가 없으면 케이스는 판정하지 않고 INCONCLUSIVE 로 남긴다.
+    jvmArgs '--add-opens', 'java.base/java.lang=ALL-UNNAMED'
+}
