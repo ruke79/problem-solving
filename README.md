@@ -5,10 +5,12 @@
 "@Transactional 은 self-invocation 에서 안 걸립니다" 같은 답변을 외우는 대신,
 그 명제를 코드로 재현해 `CONFIRMED` / `REFUTED` 판정을 남긴다.
 
-- Gradle **8.14.3** / Java **17** / Spring Boot **3.3.5**
-- 모듈 4개: `verify-core`(이식 가능한 하네스) + `verify-labs`(**88건**) + `verify-labs-kafka`(실물 브로커 **7건**)
-  + `verify-labs-perfbook`(*Java Performance* 책 명제 **15건**)
-- **검증 케이스 110건 · 13개 분류** — db 25 / perfbook 15 / resilience 11 /
+- Gradle **8.14.3** / Java **17** (한 모듈만 **Java 25**) / Spring Boot **3.3.5**
+- 모듈 6개: `verify-core`(이식 가능한 하네스) + `verify-labs`(**88건**) + `verify-labs-kafka`(실물 브로커 **7건**)
+  + `verify-labs-perfbook`(*Java Performance*·*Optimizing Java* 책 명제 **19건**)
+  + `verify-labs-cloudnative`(*Optimizing Cloud Native Java* 2판 명제 **19건**, **JDK 25** 전용, 인프라 불필요)
+  + `verify-labs-jmh`(JMH 벤치마크 3건 — "차이가 없다"를 재는 별도 모듈, 판정 없음)
+- **검증 케이스 133건 · 14개 분류** — db 25 / perfbook 19 / cloudnative 19 / resilience 11 /
   spring·kafka·jvm·jpa·ai 각 7 / security 5 / msa·concurrency·api 각 5 / observability 4
 - 인프라는 전부 실물이다(`compose.yaml`) — **PostgreSQL 16 + pgvector**, **스트리밍 레플리카**,
   **Kafka 3.9**, **Redis 7**. 흉내가 아니라 실제 옵티마이저·MVCC·복제 지연·파티션 재할당을 관측한다.
@@ -103,6 +105,24 @@ Compact Strings 는 맞았고, **"C2 를 Graal 이 대체한다"·`jaotc` 확대
 빗나갔다.** 요약 착수 순서 제안도 함께 넣었다.
 (이 문서는 **2~14장만 받은 상태로 먼저 쓰였다가, 1·15장을 받고 오류 6건을 정정**했다 — §0)
 
+#### 1판·2판 장별 요약 — [`notes/optimizing-java/`](notes/optimizing-java/README.md) · [`notes/optimizing-java-2nd/`](notes/optimizing-java-2nd/README.md)
+
+위 검토서의 §7 제안 순서대로 **1판(2018) 15장을 전부 요약**했고(보정 포함 — 8장 플래그 표는 통합 로깅으로,
+6·7장 CMS 는 동시 수집기 일반 + ZGC 로, 13장 Censum·hprof 는 현재 도구로, 15장은 예측 대조표로),
+**2판 *Optimizing Cloud Native Java*(2024, JDK 21 기준) 15장 + 부록 2 도 전부 요약**했다. 장마다 §3 에 다른 판과의
+차이, §4 에 **JDK 25 기준 평가**, §5 에 이 저장소의 실행 케이스가 있다.
+
+| 파일 | 내용 |
+|---|---|
+| [`optimizing-java/README.md`](notes/optimizing-java/README.md) | 1판 요약 15개 색인 — 제안 순서·보정 항목·후보 5건의 결과 |
+| [`optimizing-java-2nd/README.md`](notes/optimizing-java-2nd/README.md) | 2판 요약 17개 색인 |
+| [`optimizing-java-2nd/00-1판-대비-변경내역.md`](notes/optimizing-java-2nd/00-1판-대비-변경내역.md) | **1판 → 2판 장 대응표**, 삭제 3장·신규 5장, 성격이 바뀐 축, 사라진 것과 더해진 것 |
+| [`optimizing-java-2nd/01-최신-JDK-기준-평가.md`](notes/optimizing-java-2nd/01-최신-JDK-기준-평가.md) | **2판(JDK 21)을 JDK 25 로 평가** — 17·21·25 에서 실행한 명령과 출력. 책 이후 결말이 난 것 9건, 틀린 문장 4건, 미정 3건 |
+| [`JVM-용어-변천사.md`](notes/JVM-용어-변천사.md) | **G1·C2·CMS·ZGC·Shenandoah·JFR·Unsafe·가상 스레드 등 130여 용어의 도입·변경·제거·현재 사용 여부** 연표 |
+
+2판 명제의 실행 검증은 [`verify-labs-cloudnative/`](verify-labs-cloudnative/README.md)(JDK 25, 19건 전부 CONFIRMED),
+1판 §7 후보 4건은 `verify-labs-perfbook` 의 `PERF-08A`·`10D`·`11E`·`15A`, JMH 3건은 [`verify-labs-jmh/`](verify-labs-jmh/README.md).
+
 #### 검증 대상 원고 — [`manuscripts/`](manuscripts/)
 
 | 경로 | 내용 |
@@ -120,6 +140,8 @@ Compact Strings 는 맞았고, **"C2 를 Graal 이 대체한다"·`jaotc` 확대
 |---|---|
 | [`java-tutorial/README.md`](java-tutorial/README.md) | 실행되는 자바 튜토리얼 7레슨 54건 — 레슨 목록·`observe` 규칙·정직한 고지 |
 | [`spring-tutorial/README.md`](spring-tutorial/README.md) | 실행되는 스프링 튜토리얼 7레슨 52건 — **§2 트랜잭션 레슨에 DB 가 없는 이유**, §4 만들다 밟은 함정 6건 |
+| [`verify-labs-cloudnative/README.md`](verify-labs-cloudnative/README.md) | 2판 명제 19건을 **JDK 25** 에서 — 설계(Spring 없음), 케이스 표, **첫 판에서 틀린 것 5건**, 안 한 것 |
+| [`verify-labs-jmh/README.md`](verify-labs-jmh/README.md) | JMH 3건 — 실행법·결과·판정(`final`·람다 차이 없음, int/long 은 확인 못 함) |
 
 ---
 
@@ -541,10 +563,18 @@ interview-verify-lab/
 │       └── LabApplication.java
 ├── verify-labs-kafka/                # 실물 브로커 케이스 7건 (별도 모듈)
 │   └── io/webboy/verify/labs/kafka/
-├── verify-labs-perfbook/             # Java Performance 책 명제 15건 (notes/java-performance 와 짝)
+├── verify-labs-perfbook/             # Java Performance 15건 + Optimizing Java 1판 4건 (notes/java-performance·optimizing-java 와 짝)
 │   └── io/webboy/verify/labs/perfbook/
-│       ├── ch04/ ch08/ ch09/ ch10/ ch11/ ch12/ appendixa/
+│       ├── ch04/ ch08/ ch09/ ch10/ ch11/ ch12/ ch15/ appendixa/ probe/
+│       ├── ChildJvm.java             # 자식 JVM 으로 플래그·로그 형식을 관측
 │       └── PerfBookLabApplication.java
+├── verify-labs-cloudnative/          # Optimizing Cloud Native Java 2판 명제 19건 — JDK 25 툴체인, Spring 없음
+│   └── io/webboy/verify/labs/cloudnative/
+│       ├── ch03/ ch04/ ch05/ ch06/ ch07/ ch09/ ch10/ ch11/ ch12/ ch13/ ch15/ appendixa/ probe/
+│       ├── Jvm.java  Flags.java  Timing.java
+│       └── CloudNativeCases.java     # 수동 레지스트리 (all())
+├── verify-labs-jmh/                  # JMH 1.37 벤치마크 3건 — ./gradlew :verify-labs-jmh:jmh
+│   └── io/webboy/verify/jmh/
 ├── java-tutorial/                    # 실행되는 자바 튜토리얼 7레슨 54건 (java-면접 과 짝)
 │   └── io/webboy/tutorial/
 │       ├── Lesson01_Equality ~ Lesson07_ModernJava

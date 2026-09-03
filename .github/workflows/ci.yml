@@ -9,6 +9,12 @@
 # 케이스라, 그것을 재려면 remote-network.yml 을 쓴다(docs/02 §9-6).
 #
 # java-tutorial(54건)·spring-tutorial(52건)은 인프라가 필요 없어 별도 잡으로 먼저 돌린다.
+#
+# verify-labs-cloudnative(19건)는 JDK 25 전용이라 별도 잡(cloudnative)에서 setup-java 로 25 를 깔고 돌린다 —
+# 인프라가 필요 없고, verify 잡의 `./gradlew test` 에서는 제외한다(-x). 25 가 없으면 그 모듈의 테스트는 skip 이다.
+#
+# verify-labs-jmh 는 어느 잡에서도 돌리지 않는다 — 2코어 공유 러너의 JMH 수치는 문서에 옮길 값이 못 된다.
+# 필요하면 workflow_dispatch 입력 run_jmh=true 로 jmh 잡을 켠다(결과는 아티팩트로만, 판정 없음).
 name: ci
 
 on:
@@ -16,8 +22,73 @@ on:
     branches: ['**']
   pull_request:
   workflow_dispatch:
+    inputs:
+      run_jmh:
+        description: 'verify-labs-jmh 벤치마크도 돌린다 (수치는 참고용 — 공유 러너)'
+        type: boolean
+        default: false
 
 jobs:
+  # 2판(Optimizing Cloud Native Java) 명제 19건 — JDK 25 전용, 인프라 불필요.
+  # setup-java 가 JAVA_HOME_25_X64 를 내보내고, Gradle 툴체인이 그 경로를 후보로 쓴다(fromEnv).
+  cloudnative:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: |
+            25
+            17
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: 2판 명제 검증 (JDK 25, 19건)
+        run: ./gradlew :verify-labs-cloudnative:test -Porg.gradle.java.installations.fromEnv=JAVA_HOME_25_X64
+
+      - name: 리포트 수집
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verification-report-cloudnative
+          path: verify-labs-cloudnative/build/reports/verification-cloudnative.md
+          if-no-files-found: warn
+
+      - name: 테스트 상세 (실패 시 진단용)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cloudnative-test-results
+          path: verify-labs-cloudnative/build/reports/tests/test/
+
+  # JMH — 수동으로만. 판정이 없으므로 실패/성공이 아니라 JSON 결과만 남긴다.
+  jmh:
+    if: github.event_name == 'workflow_dispatch' && inputs.run_jmh
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: JMH 벤치마크 3건 (참고용)
+        run: ./gradlew :verify-labs-jmh:jmh
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: jmh-result
+          path: verify-labs-jmh/build/reports/jmh-result.json
+          if-no-files-found: warn
+
   # 튜토리얼 두 모듈은 인프라가 필요 없다. 그래서 별도 잡으로 먼저 돌린다 —
   # compose 기동을 기다리지 않으므로 몇 분 안에 결과가 나온다.
   tutorial:
@@ -67,8 +138,8 @@ jobs:
           ./scripts/random-ports.sh
           docker compose up -d --wait
 
-      - name: 검증 실행 (110건)
-        run: ./gradlew test
+      - name: 검증 실행 (114건 — cloudnative 는 별도 잡)
+        run: ./gradlew test -x :verify-labs-cloudnative:test
 
       # 판정 리포트가 이 워크플로의 산출물이다 — 실패해도 리포트는 남긴다
       - name: 리포트 수집
