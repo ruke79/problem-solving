@@ -49,6 +49,9 @@ jobs:
       - name: 플래시카드가 키노트와 일치하는지 검사
         run: ./scripts/make-flashcards.py --check
 
+      - name: 인쇄용 카드가 플래시카드와 일치하는지 검사
+        run: ./scripts/make-flashcard-sheets.py --check
+
   # 2판(Optimizing Cloud Native Java) 명제 19건 — JDK 25 전용, 인프라 불필요.
   # setup-java 가 JAVA_HOME_25_X64 를 내보내고, Gradle 툴체인이 그 경로를 후보로 쓴다(fromEnv).
   cloudnative:
