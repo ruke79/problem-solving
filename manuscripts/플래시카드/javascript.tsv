@@ -1,0 +1,12 @@
+# javascript-면접 — 필수(S급) 플래시카드. scripts/make-flashcards.py 가 생성한다 (직접 고치지 말 것)
+# 앞면	뒷면	태그
+Q6. イベントループはどう動きますか？	コールスタックが空になると、まずマイクロタスクキューを**空になるまで**処理し、その後マクロタスクを一つ取ります。Promise のコールバックはマイクロタスク、`setTimeout` はマクロタスクなので、`setTimeout(fn, 0)` より Promise の方が先に走ります。<br><br>— 이벤트 루프의 동작	javascript Q6 빈출
+Q7. Promise の状態と `then` の連鎖について説明してください。	pending から fulfilled か rejected へ一度だけ遷移します。`then` は新しい Promise を返すので連鎖でき、**`then` の中で Promise を返すとそれが解決されてから次に進みます**。`return` を書き忘れると待たずに進んでしまいます。<br><br>— Promise 의 상태와 then 체인	javascript Q7 빈출
+Q10. 複数の非同期処理を並行に走らせるときの注意は？	`for` の中で `await` すると直列になるので、並行にしたいなら Promise を先に作って `Promise.all` に渡します。ただし無制限に並行にすると相手のサーバやコネクション上限を壊すので、同時実行数を制限します。<br><br>— 여러 비동기 처리를 병행할 때의 주의	javascript Q10 실무
+Q9. `async`/`await` のエラー処理はどう書きますか？	`try`/`catch` で囲みます。注意点は、**`await` を付け忘れた Promise は catch されない**ことで、それが未処理の rejection になります。Node なら `unhandledRejection` を監視します。<br><br>— async/await 의 에러 처리	javascript Q9 함정
+Q4. `this` は何で決まりますか？	呼び出し方で決まります。メソッド呼び出しならレシーバ、`new` ならその新しいインスタンス、`call`/`bind` なら指定したものです。**アロー関数だけが例外で、自分の `this` を持たず定義時の外側を使います**。<br><br>— this 는 무엇으로 정해지나	javascript Q4 빈출
+Q3. クロージャとは何ですか？	関数が定義されたときのスコープを覚えたまま持ち歩く仕組みです。プライベート変数やモジュールパターンに使いますが、DOM や大きなオブジェクトを掴んだままにすると解放されずメモリリークになります。<br><br>— 클로저란	javascript Q3
+Q1. `var`・`let`・`const` の違いは？	`var` は関数スコープで巻き上げられ、宣言前でも `undefined` として参照できてしまいます。`let` と `const` はブロックスコープで、宣言前の参照は TDZ でエラーになります。**`const` は再代入を禁止するだけで中身の変更は防ぎません**。<br><br>— var·let·const 의 차이	javascript Q1
+Q19. JavaScript でメモリリークはどんなときに起きますか？	一番多いのはイベントリスナーやタイマーの解除漏れです。DOM を消してもリスナーが参照を持っていると回収されません。調査は DevTools のヒープスナップショットを二点取って差分を見ます。<br><br>— 자바스크립트의 메모리 누수	javascript Q19 실무
+Q24. `localStorage`・`sessionStorage`・Cookie の使い分けは？	**認証トークンを `localStorage` に置くと XSS で盗まれます。**セッションの識別子は `HttpOnly`・`Secure`・`SameSite` を付けた Cookie に置くのが基本で、ストレージには機密でない表示設定などを入れます。<br><br>— localStorage·sessionStorage·쿠키 구분	javascript Q24 변별력 보안
+Q25. XSS はどう防ぎますか？	出力時のエスケープが基本で、フレームワークが既定でやってくれるものを安易に外さないことです。多層で守るため、CSP でインラインスクリプトを制限し、Cookie は `HttpOnly` にして盗まれても使えないようにします。<br><br>— XSS 방어	javascript Q25 보안

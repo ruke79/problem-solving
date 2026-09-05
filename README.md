@@ -138,6 +138,7 @@ Compact Strings 는 맞았고, **"C2 를 Graal 이 대체한다"·`jaotc` 확대
 | [`java-면접/`](manuscripts/java-면접/) | Java 145문항 — [README](manuscripts/java-면접/README.md) · [**필수-키노트**](manuscripts/java-면접/필수-키노트.md) · [Part1](manuscripts/java-면접/Part1.md) [2](manuscripts/java-면접/Part2.md) [3](manuscripts/java-면접/Part3.md) [4](manuscripts/java-면접/Part4.md) [5](manuscripts/java-면접/Part5.md) |
 | [`spring-면접/`](manuscripts/spring-면접/) | Spring Boot 145문항 — [README](manuscripts/spring-면접/README.md) · [**필수-키노트**](manuscripts/spring-면접/필수-키노트.md) · [Part1](manuscripts/spring-면접/Part1.md) [2](manuscripts/spring-면접/Part2.md) [3](manuscripts/spring-면접/Part3.md) [4](manuscripts/spring-면접/Part4.md) [5](manuscripts/spring-면접/Part5.md) |
 | [**`면접-용어-정의.md`**](manuscripts/면접-용어-정의.md) | 위 290문항에 나오는 **용어 사전** — 한국어 정의 + 日本語 표기 + 나오는 문항·케이스 id |
+| [**`플래시카드/`**](manuscripts/플래시카드/README.md) | 일곱 세트의 **필수(S급) 86장** — 앞면 일본어 질문 / 뒷면 일본어 한 문장. Anki 로 바로 가져오는 TSV |
 | [`python-면접/`](manuscripts/python-면접/README.md) | Python 50문항 — [Part1](manuscripts/python-면접/Part1.md) 언어·자료구조 · [Part2](manuscripts/python-면접/Part2.md) 메모리·성능·실무 |
 | [`javascript-면접/`](manuscripts/javascript-면접/README.md) | JavaScript 50문항 — [Part1](manuscripts/javascript-면접/Part1.md) 언어 핵심 · [Part2](manuscripts/javascript-면접/Part2.md) 브라우저·Node·실무 |
 | [`db-면접/`](manuscripts/db-면접/README.md) | DB 50문항 — [Part1](manuscripts/db-면접/Part1.md) 인덱스·트랜잭션 · [Part2](manuscripts/db-면접/Part2.md) 운영·확장·설계. **24문항에 `DB-*` 실행 근거** |

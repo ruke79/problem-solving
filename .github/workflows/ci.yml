@@ -31,9 +31,10 @@ on:
         default: false
 
 jobs:
-  # 문서 링크 검사 — 자바도 인프라도 필요 없어 몇 초에 끝난다. 그래서 맨 앞에 둔다.
-  # 깨진 링크·깨진 앵커뿐 아니라 **README 에서 닿지 않는 문서(고아)** 도 실패로 본다 —
-  # 문서를 새로 만들고 어디에도 걸지 않는 것을 잡으려는 검사다(scripts/check-links.py 머리말).
+  # 문서 검사 — 자바도 인프라도 필요 없어 몇 초에 끝난다. 그래서 맨 앞에 둔다.
+  # (1) 깨진 링크·깨진 앵커뿐 아니라 **README 에서 닿지 않는 문서(고아)** 도 실패로 본다 —
+  #     문서를 새로 만들고 어디에도 걸지 않는 것을 잡으려는 검사다(scripts/check-links.py 머리말).
+  # (2) 플래시카드가 필수-키노트에서 다시 생성한 것과 같은지 본다(scripts/make-flashcards.py).
   docs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -42,6 +43,11 @@ jobs:
 
       - name: 문서 링크·앵커·도달성 검사
         run: ./scripts/check-links.py
+
+      # 플래시카드는 필수-키노트에서 생성한 파생물이다. 손으로 고치거나 키노트만 고치면 조용히
+      # 어긋나고, 어긋난 쪽을 외우게 된다. 그래서 최신인지를 CI 가 검사한다.
+      - name: 플래시카드가 키노트와 일치하는지 검사
+        run: ./scripts/make-flashcards.py --check
 
   # 2판(Optimizing Cloud Native Java) 명제 19건 — JDK 25 전용, 인프라 불필요.
   # setup-java 가 JAVA_HOME_25_X64 를 내보내고, Gradle 툴체인이 그 경로를 후보로 쓴다(fromEnv).

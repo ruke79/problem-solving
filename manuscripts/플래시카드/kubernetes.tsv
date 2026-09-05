@@ -1,0 +1,12 @@
+# kubernetes-면접 — 필수(S급) 플래시카드. scripts/make-flashcards.py 가 생성한다 (직접 고치지 말 것)
+# 앞면	뒷면	태그
+Q11. liveness と readiness の違いは？	liveness は「死んでいるなら再起動する」、readiness は「準備できていないならトラフィックを送らない」で、役割が全く違います。**liveness に重い依存チェックを入れると、DB が一瞬遅いだけで再起動ループになります**。<br><br>— liveness 와 readiness 의 차이	kubernetes Q11 빈출 함정
+Q13. requests と limits はどう違いますか？	requests はスケジューリングで確保する量、limits は超えてはいけない上限です。**CPU の limit を超えるとスロットルされ、メモリの limit を超えると OOMKilled されます** — ここが CPU とメモリで挙動が違う一番大事な点です。<br><br>— requests 와 limits 의 차이	kubernetes Q13 빈출
+Q14. limits と JVM の関係で気をつけることは？	JVM はコンテナの制限を見て自分を構成するので、**CPU が 1 だとエルゴノミクスがシリアル GC を選びます**。またヒープの外にもメタスペースやスレッドスタックが要るので、コンテナの制限はヒープより十分大きくしないと OOMKilled になります。<br><br>— limits 와 JVM 의 관계<br>실행 근거: CN-04A · CN-04B	kubernetes Q14 변별력 자바연계 CN-04A CN-04B
+Q27. OOMKilled が出たらどうしますか？	まず本当に足りないのか、リークなのかを分けます。使用量が右肩上がりならリークです。JVM なら**ヒープの外を忘れていないか**を確認します。ヒープを limit と同じにすると必ず超えます。<br><br>— OOMKilled 가 나오면<br>실행 근거: JVM-07	kubernetes Q27 실무 JVM-07
+Q7. Service は何をしていますか？	複数の Pod に対する**安定した宛先**を提供します。Pod は入れ替わるたびに IP が変わるので直接指定できません。セレクタでラベルの合う Pod を集め、各ノードの kube-proxy が転送します。<br><br>— Service 의 역할	kubernetes Q7 빈출
+Q28. サービスに繋がらないとき、どこから見ますか？	経路を順にたどります。まず Service のセレクタに合う Pod がいるか、**`Endpoints` が空でないか**を見ます。空ならラベルが合っていないか readiness が通っていません。次にポート、DNS、NetworkPolicy の順です。<br><br>— 서비스에 연결되지 않을 때	kubernetes Q28 변별력 실무
+Q19. ローリングアップデートはどう動きますか？	新しい ReplicaSet を少しずつ増やし、古い方を減らします。**readiness が通るまで新しい Pod にはトラフィックが来ない**ので、readiness を正しく作っていることが前提です。<br><br>— 롤링 업데이트의 동작	kubernetes Q19 빈출
+Q21. Pod を安全に終了させるにはどうしますか？	終了が始まると、Service の宛先から外す処理と SIGTERM の送信が**並行して**起きます。つまり外れる前に落ちると処理中のリクエストが失敗するので、`preStop` で数秒待ってから終了処理に入ります。<br><br>— Pod 의 안전한 종료	kubernetes Q21 함정 실무
+Q26. Pod が起動しないとき、どう調べますか？	まず状態を見ます。`Pending` ならスケジュールできていない、`ImagePullBackOff` ならイメージが取れない、`CrashLoopBackOff` なら起動して落ちている。**状態ごとに原因の場所が違います**。<br><br>— Pod 이 기동하지 않을 때	kubernetes Q26 빈출
+Q50. 障害が起きたとき、まず何をしますか？	影響範囲の確認と、**直近の変更の確認**です。多くの障害は直前のデプロイか設定変更に紐づいているので、まずそこを疑い、必要なら戻します。原因究明より復旧が先です。<br><br>— 장애 시 첫 대응	kubernetes Q50 시니어
