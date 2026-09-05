@@ -137,8 +137,19 @@ Compact Strings 는 맞았고, **"C2 를 Graal 이 대체한다"·`jaotc` 확대
 | [`원본/`](manuscripts/원본/) · [`수정본/`](manuscripts/수정본/) · [`회화체/`](manuscripts/회화체/) | Q1~Q200 세 벌. **[Part 1~11 파일 표](manuscripts/README.md#part-별-파일)** · 수정본의 [적용 내역](manuscripts/수정본/00-적용-내역.md) |
 | [`java-면접/`](manuscripts/java-면접/) | Java 145문항 — [README](manuscripts/java-면접/README.md) · [**필수-키노트**](manuscripts/java-면접/필수-키노트.md) · [Part1](manuscripts/java-면접/Part1.md) [2](manuscripts/java-면접/Part2.md) [3](manuscripts/java-면접/Part3.md) [4](manuscripts/java-면접/Part4.md) [5](manuscripts/java-면접/Part5.md) |
 | [`spring-면접/`](manuscripts/spring-면접/) | Spring Boot 145문항 — [README](manuscripts/spring-면접/README.md) · [**필수-키노트**](manuscripts/spring-면접/필수-키노트.md) · [Part1](manuscripts/spring-면접/Part1.md) [2](manuscripts/spring-면접/Part2.md) [3](manuscripts/spring-면접/Part3.md) [4](manuscripts/spring-면접/Part4.md) [5](manuscripts/spring-면접/Part5.md) |
+| [**`면접-용어-정의.md`**](manuscripts/면접-용어-정의.md) | 위 290문항에 나오는 **용어 사전** — 한국어 정의 + 日本語 표기 + 나오는 문항·케이스 id |
+| [`python-면접/`](manuscripts/python-면접/README.md) | Python 50문항 — [Part1](manuscripts/python-면접/Part1.md) 언어·자료구조 · [Part2](manuscripts/python-면접/Part2.md) 메모리·성능·실무 |
+| [`javascript-면접/`](manuscripts/javascript-면접/README.md) | JavaScript 50문항 — [Part1](manuscripts/javascript-면접/Part1.md) 언어 핵심 · [Part2](manuscripts/javascript-면접/Part2.md) 브라우저·Node·실무 |
+| [`db-면접/`](manuscripts/db-면접/README.md) | DB 50문항 — [Part1](manuscripts/db-면접/Part1.md) 인덱스·트랜잭션 · [Part2](manuscripts/db-면접/Part2.md) 운영·확장·설계. **24문항에 `DB-*` 실행 근거** |
+| [`kafka-면접/`](manuscripts/kafka-면접/README.md) | Kafka 50문항 — [Part1](manuscripts/kafka-면접/Part1.md) 구조·프로듀서·컨슈머 · [Part2](manuscripts/kafka-면접/Part2.md) 설계·운영·장애. 실물 브로커 `KAFKA-*` 근거 |
+| [`kubernetes-면접/`](manuscripts/kubernetes-면접/README.md) | Kubernetes 50문항 — [Part1](manuscripts/kubernetes-면접/Part1.md) 구조·워크로드 · [Part2](manuscripts/kubernetes-면접/Part2.md) 운영·보안·트러블슈팅. **실행 근거 없음**(k8s 미검증) |
 
 두 키노트의 `▶레슨 n-m` 표기가 아래 튜토리얼 모듈의 레슨 번호다.
+
+> **주제별 세트 다섯(각 50문항 이내)은 근거의 두께가 서로 다르다.** DB 와 Kafka 는 실물 인프라 위에서
+> 돌린 케이스가 문항에 붙지만, **Python·JavaScript·Kubernetes 는 문서 기반 서술이고 실행 근거가 없다** —
+> 특히 쿠버네티스는 이 저장소가 검증하지 못한 영역이다([`docs/02`](docs/02-정직한-고지.md) §1-3).
+> 각 README 에 「검증하지 못한 것」을 따로 적었고, **그 세트에는 수치를 쓰지 않았다.**
 
 #### 모듈 README
 
