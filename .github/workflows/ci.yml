@@ -15,6 +15,8 @@
 #
 # verify-labs-jmh 는 어느 잡에서도 돌리지 않는다 — 2코어 공유 러너의 JMH 수치는 문서에 옮길 값이 못 된다.
 # 필요하면 workflow_dispatch 입력 run_jmh=true 로 jmh 잡을 켠다(결과는 아티팩트로만, 판정 없음).
+#
+# docs 잡은 코드가 아니라 문서를 본다 — 깨진 링크·앵커와 README 에서 닿지 않는 문서를 잡는다.
 name: ci
 
 on:
@@ -29,6 +31,18 @@ on:
         default: false
 
 jobs:
+  # 문서 링크 검사 — 자바도 인프라도 필요 없어 몇 초에 끝난다. 그래서 맨 앞에 둔다.
+  # 깨진 링크·깨진 앵커뿐 아니라 **README 에서 닿지 않는 문서(고아)** 도 실패로 본다 —
+  # 문서를 새로 만들고 어디에도 걸지 않는 것을 잡으려는 검사다(scripts/check-links.py 머리말).
+  docs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 문서 링크·앵커·도달성 검사
+        run: ./scripts/check-links.py
+
   # 2판(Optimizing Cloud Native Java) 명제 19건 — JDK 25 전용, 인프라 불필요.
   # setup-java 가 JAVA_HOME_25_X64 를 내보내고, Gradle 툴체인이 그 경로를 후보로 쓴다(fromEnv).
   cloudnative:
